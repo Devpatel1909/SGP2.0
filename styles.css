@@ -14,7 +14,7 @@ header {
     text-align: center;
 }
 
-/* Container */
+/* Container Styling */
 .container {
     margin: 20px auto;
     max-width: 1000px;
@@ -22,6 +22,7 @@ header {
     padding: 20px;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    text-align: center; /* Centers all content within the container */
 }
 
 /* Table Styles */
@@ -45,6 +46,68 @@ th {
 }
 
 /* Action Buttons */
+button {
+    padding: 10px 20px;
+    font-size: 16px;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+button:hover {
+    opacity: 0.9;
+}
+
+/* Specific Button Styles */
+button:first-child {
+    background-color: #4CAF50;
+    color: white;
+}
+
+button:first-child:hover {
+    background-color: #45a049;
+}
+
+button:last-child {
+    background-color: #007BFF;
+    color: white;
+}
+
+button:last-child:hover {
+    background-color: #0056b3;
+}
+
+/* Action Buttons Container */
+.action-buttons {
+    margin-top: 20px;
+    display: flex;
+    justify-content: center; /* Centers buttons horizontally */
+    gap: 20px; /* Adds space between buttons */
+}
+
+/* Add Item Button */
+.add-item {
+    display: flex;
+    justify-content: center; /* Centers the button horizontally */
+    margin-top: 20px;
+}
+
+/* Add Item Form */
+.add-item input {
+    padding: 10px;
+    margin-right: 10px;
+    border-radius: 3px;
+    border: 1px solid #ddd;
+}
+
+.add-item button {
+    background-color: #4CAF50;
+    color: white;
+    border-radius: 3px;
+}
+
+/* Table Row Action Buttons */
 .actions button {
     padding: 5px 10px;
     margin-right: 5px;
@@ -60,24 +123,5 @@ th {
 }
 
 .actions button:hover {
-    opacity: 0.9;
-}
-
-/* Add Item Button */
-.add-item {
-    display: flex;
-    justify-content: flex-end;
-}
-
-.add-item button {
-    padding: 10px 20px;
-    background-color: #4CAF50;
-    color: white;
-    border: none;
-    border-radius: 3px;
-    cursor: pointer;
-}
-
-.add-item button:hover {
     opacity: 0.9;
 }

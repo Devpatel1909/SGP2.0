@@ -11,9 +11,6 @@
         <h1>Inventory Management System</h1>
     </header>
     <div class="container">
-        <div class="add-item">
-            <button onclick="addItem()">Add New Item</button>
-        </div>
         <table>
             <thead>
                 <tr>
@@ -25,20 +22,26 @@
                 </tr>
             </thead>
             <tbody>
-                <tr>
-                    <td><input type="text" id="item-id" placeholder="Enter ID"></td>
-                    <td><input type="text" id="item-name" placeholder="Enter Name"></td>
-                    <td><input type="number" id="item-quantity" placeholder="Enter Quantity"></td>
-                    <td><input type="number" id="item-price" placeholder="Enter Price"></td>
-                    <td>
-                        <button onclick="editItem(this)">Edit</button>
-                        <button onclick="removeItem(this)">Remove</button>
-                    </td>
-                </tr>
                 <!-- Items will be dynamically populated here -->
             </tbody>
         </table>
+
+        <!-- Action Buttons at the bottom -->
+        
+        <!-- Add New Item Form (hidden initially) -->
+        <div class="add-item">
+            <input type="text" id="item-id" placeholder="Enter ID">
+            <input type="text" id="item-name" placeholder="Enter Name">
+            <input type="number" id="item-quantity" placeholder="Enter Quantity">
+            <input type="number" id="item-price" placeholder="Enter Price">
+            <button onclick="saveItem()">Save</button>
+        </div>
+        <div class="action-buttons">
+            <button onclick="addItem()">Add New Item</button>
+            <button onclick="updateInventory()">Update Inventory</button>
+        </div>
     </div>
+
     <script src="inventory_script.js"></script>
 </body>
 </html>

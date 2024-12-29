@@ -1,54 +1,109 @@
-// Function to add a new row for item entry
-function addItem() {
-    let table = document.querySelector('table tbody');
-    let newRow = table.insertRow();
+// Example data storage for inventory items
+let inventory = [];
 
-    // Create new cells for ID, Name, Quantity, Price, and Actions
-    newRow.innerHTML = `
-        <td><input type="text" placeholder="Enter ID"></td>
-        <td><input type="text" placeholder="Enter Name"></td>
-        <td><input type="number" placeholder="Enter Quantity"></td>
-        <td><input type="number" placeholder="Enter Price"></td>
-        <td>
-            <button onclick="editItem(this)">Edit</button>
-            <button onclick="removeItem(this)">Remove</button>
-        </td>
-    `;
+function addItem() {
+    // Toggle the visibility of the add item form
+    const addItemForm = document.querySelector('.add-item');
+    addItemForm.style.display = addItemForm.style.display === 'flex' ? 'none' : 'flex';
 }
 
-// Function to save item data and replace the input fields with text
-function editItem(button) {
-    let row = button.closest('tr');
-    let idInput = row.cells[0].querySelector('input');
-    let nameInput = row.cells[1].querySelector('input');
-    let quantityInput = row.cells[2].querySelector('input');
-    let priceInput = row.cells[3].querySelector('input');
+function saveItem() {
+    const itemId = document.getElementById('item-id').value;
+    const itemName = document.getElementById('item-name').value;
+    const itemQuantity = document.getElementById('item-quantity').value;
+    const itemPrice = document.getElementById('item-price').value;
 
-    // If the input fields are already displayed (indicating that the row is in 'edit' mode), save the changes
-    if (idInput) {
-        row.cells[0].innerText = idInput.value;
-        row.cells[1].innerText = nameInput.value;
-        row.cells[2].innerText = quantityInput.value;
-        row.cells[3].innerText = priceInput.value;
+    // Check if all fields are filled
+    if (itemId && itemName && itemQuantity && itemPrice) {
+        const newItem = {
+            id: itemId,
+            name: itemName,
+            quantity: itemQuantity,
+            price: itemPrice
+        };
 
-        // Change button to "Edit" again
-        button.innerText = 'Edit';
-        button.setAttribute('onclick', 'editItem(this)');
+        // Add the new item to the inventory
+        inventory.push(newItem);
+
+        // Clear input fields
+        document.getElementById('item-id').value = '';
+        document.getElementById('item-name').value = '';
+        document.getElementById('item-quantity').value = '';
+        document.getElementById('item-price').value = '';
+
+        // Update the table
+        updateTable();
     } else {
-        // Otherwise, show input fields for editing
-        row.cells[0].innerHTML = `<input type="text" value="${row.cells[0].innerText}">`;
-        row.cells[1].innerHTML = `<input type="text" value="${row.cells[1].innerText}">`;
-        row.cells[2].innerHTML = `<input type="number" value="${row.cells[2].innerText}">`;
-        row.cells[3].innerHTML = `<input type="number" value="${row.cells[3].innerText}">`;
-
-        // Change button to "Save"
-        button.innerText = 'Save';
-        button.setAttribute('onclick', 'editItem(this)');
+        alert('Please fill in all fields');
     }
 }
 
-// Function to remove an item row
-function removeItem(button) {
-    let row = button.closest('tr');
-    row.remove();
+function updateTable() {
+    const tbody = document.querySelector('table tbody');
+    tbody.innerHTML = ''; // Clear current table rows
+
+    // Loop through inventory and populate the table
+    inventory.forEach((item, index) => {
+        const row = tbody.insertRow();
+        row.innerHTML = `
+            <td>${item.id}</td>
+            <td>${item.name}</td>
+            <td>${item.quantity}</td>
+            <td>${item.price}</td>
+            <td class="actions">
+                <button onclick="editItem(${index})">Edit</button>
+                <button class="delete" onclick="removeItem(${index})">Remove</button>
+            </td>
+        `;
+    });
+}
+
+function editItem(index) {
+    const item = inventory[index];
+    document.getElementById('item-id').value = item.id;
+    document.getElementById('item-name').value = item.name;
+    document.getElementById('item-quantity').value = item.quantity;
+    document.getElementById('item-price').value = item.price;
+
+    // Toggle the form visibility to update the item
+    const addItemForm = document.querySelector('.add-item');
+    addItemForm.style.display = 'flex';
+    addItemForm.querySelector('button').onclick = () => updateItem(index);
+}
+
+function updateItem(index) {
+    const itemId = document.getElementById('item-id').value;
+    const itemName = document.getElementById('item-name').value;
+    const itemQuantity = document.getElementById('item-quantity').value;
+    const itemPrice = document.getElementById('item-price').value;
+
+    // Update the item in the inventory
+    inventory[index] = {
+        id: itemId,
+        name: itemName,
+        quantity: itemQuantity,
+        price: itemPrice
+    };
+
+    // Clear input fields
+    document.getElementById('item-id').value = '';
+    document.getElementById('item-name').value = '';
+    document.getElementById('item-quantity').value = '';
+    document.getElementById('item-price').value = '';
+
+    // Update the table
+    updateTable();
+}
+
+function removeItem(index) {
+    // Remove the item from the inventory
+    inventory.splice(index, 1);
+
+    // Update the table
+    updateTable();
+}
+
+function updateInventory() {
+    // Placeholder for actual inventory update logic
+    alert('Inventory updated!');
 }
