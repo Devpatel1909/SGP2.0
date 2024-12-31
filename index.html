@@ -4,41 +4,52 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Inventory Management System</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <header>
-        <h1>Inventory Management System</h1>
+    <!-- Header -->
+    <header class="header">
+        <nav class="navbar">    
+            <img src="PHOTOS/symbols/shop.png" alt="Logo" class="logo">
+            <a href="About.html"class="fas fa-sign-in-alt login-button" >About</a>
+            <a href="Feedback.html" id="feedback">feedback</a>
+            
+            <a href="login.html" class="fas fa-sign-in-alt login-button">Logout</a>
+            <a href="Cart.html" class="fas fa-sign-in-alt login-button">Cart</a>
+        </nav>
+    
     </header>
-    <div class="container">
-        <table>
-            <thead>
-                <tr>
-                    <th>Item ID</th>
-                    <th>Item Name</th>
-                    <th>Quantity</th>
-                    <th>Price</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                <!-- Items will be dynamically populated here -->
-            </tbody>
-        </table>
 
-        <!-- Action Buttons at the bottom -->
-        
-        <!-- Add New Item Form (hidden initially) -->
-        <div class="add-item">
-            <input type="text" id="item-id" placeholder="Enter ID">
-            <input type="text" id="item-name" placeholder="Enter Name">
-            <input type="number" id="item-quantity" placeholder="Enter Quantity">
-            <input type="number" id="item-price" placeholder="Enter Price">
-            <button onclick="saveItem()">Save</button>
+    <!-- Content Container (Table and Form) -->
+    <div class="content-container">
+        <!-- Table Section -->
+        <div class="table-section">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Item ID</th>
+                        <th>Item Name</th>
+                        <th>Quantity</th>
+                        <th>Price</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                  
+                </tbody>
+            </table>
         </div>
-        <div class="action-buttons">
-            <button onclick="addItem()">Add New Item</button>
-            <button onclick="updateInventory()">Update Inventory</button>
+
+        <!-- Add Item Form Section -->
+        <div class="form-section">
+            <div class="add-item">
+                <input type="text" id="item-id" placeholder="Enter ID">
+                <input type="text" id="item-name" placeholder="Enter Name">
+                <input type="number" id="item-quantity" placeholder="Enter Quantity">
+                <input type="number" id="item-price" placeholder="Enter Price">
+                <button onclick="saveItem()">Save</button>
+            </div>
         </div>
     </div>
 
