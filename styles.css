@@ -1,147 +1,30 @@
-/* General Reset */
 body {
+    font-family: Arial, sans-serif;
     margin: 0;
-    font-family: 'Roboto', Arial, sans-serif; /* Applied Roboto font globally */
+    padding: 0;
 }
 
-/* Header Styling */
-.header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background-color: #f8f9fa;
+.container {
+    width: 80%;
+    margin: 0 auto;
     padding: 20px;
-    border-radius: 0 0 25px 25px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-header .navbar a{
-    font-size: 1.7rem;
-    border-radius: .5rem;
-    padding: .5rem 1.5rem;
-    color:var(--light-color);
-
-}
-header .navbar a.active,
-header .navbar a:hover{
-    color: #fff;
-    background: orangered;
-}
-.logo {
-    width: 40px;
-    height: auto;
-    margin-right: 20px;
 }
 
-header .icons i,
-header .icons a{
-    cursor:pointer;
-    margin: left 0.5rem;
-    height: 4.5rem;
-    line-height: 4.5rem;
-    width: 4.5rem;
+h1, h2 {
     text-align: center;
-    font-size: 1.7rem;
-    color:black;
-    border-radius:50%;
-    background: #eee;
-
-}
-header .icons i:hover,
-header .icons a:hover{
-    color: #fff;
-    background: orangered;
-    transform: rotate(360deg);
-
-}
-header .icons #menu-bars{
-    display: none;
-}   
-
-/* Container for Table and Form */
-.content-container {
-    display: flex;
-    gap: 20px;
-    padding: 20px;
-    align-items: flex-start;
 }
 
-/* Table Section Styling */
-.table-section {
-    flex: 2; /* Table takes more space */
-}
-
-/* Table Styling */
 table {
     width: 100%;
     border-collapse: collapse;
-    margin-bottom: 20px;
 }
 
-table, th, td {
-    border: 1px solid #ddd;
-}
-
-th, td {
-    text-align: left;
-    padding: 8px;
-}
-
-th {
-    background-color: #f2f2f2;
-}
-
-/* Form Section Styling */
-.form-section {
-    flex: 1; /* Form takes less space */
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    background-color: #f9f9f9;
-    padding: 15px;
-    border-radius: 10px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-/* Add Item Form Inputs */
-.add-item input {
-    width: 100%;
-    padding: 8px;
-    margin-bottom: 10px;
+table th, table td {
     border: 1px solid #ccc;
-    border-radius: 4px;
-    font-size: 16px;
+    padding: 10px;
+    text-align: center;
 }
 
-/* Add Item Button */
-.add-item button {
-    padding: 10px 15px;
-    background-color: #007bff;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    font-size: 16px;
-    cursor: pointer;
-}
-
-.add-item button:hover {
-    background-color: #0056b3;
-}
-
-/* Additional styling for Action Buttons (if any) */
-.action-buttons {
-    display: flex;
-    gap: 10px;
-}
-
-.action-buttons button {
-    padding: 10px 20px;
-    background-color: #28a745;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-}
-
-.action-buttons button:hover {
-    background-color: #218838;
+button {
+    padding: 5px 10px;
 }
