@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 import dotenv from "dotenv";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import User from "./models/User.js"; // Ensure you have a User model defined
+import User from "../models/User.js"; // Ensure you have a User model defined
 import cors from "cors";
 
 dotenv.config();

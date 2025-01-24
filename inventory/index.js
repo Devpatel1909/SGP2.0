@@ -1,22 +1,45 @@
 document.addEventListener("DOMContentLoaded", () => {
     const inventoryForm = document.getElementById("inventory-form");
     const inventoryTable = document.getElementById("inventory-table");
+    const messageDiv = document.getElementById("message");
 
-    // Fetch items from the database and render them in the table
+    // Check if user is logged in
+    function checkLogin() {
+        const token = localStorage.getItem("token");
+        if (!token) {
+            // Redirect to login page if not logged in
+            window.location.href = "../login/index.html";
+        }
+        return token; // Return the token if logged in
+    }
+
+    // Display messages (success/error)
+    function displayMessage(message, type = "error") {
+        messageDiv.textContent = message;
+        messageDiv.className = `message ${type}`; // Apply CSS class based on message type (success/error)
+        setTimeout(() => {
+            messageDiv.textContent = "";
+            messageDiv.className = "message";
+        }, 3000);
+    }
+
+    // Fetch items from the server and render them in the table
     async function fetchItems() {
+        const token = checkLogin(); // Ensure user is logged in
         try {
             const response = await fetch("http://localhost:3000/api/items", {
                 headers: {
-                    "Authorization": `Bearer ${localStorage.getItem("token")}` // Include the token for authentication
-                }
+                    "Authorization": `Bearer ${token}` // Include the token for authentication
+                },
             });
             if (!response.ok) {
-                throw new Error("Failed to fetch items");
+                throw new Error("Failed to fetch items. Please log in again.");
             }
             const items = await response.json();
             renderInventory(items);
         } catch (error) {
             console.error("Error fetching items:", error);
+            displayMessage("Error fetching items. Please log in.", "error");
         }
     }
 
@@ -39,6 +62,12 @@ document.addEventListener("DOMContentLoaded", () => {
     inventoryForm.addEventListener("submit", async (e) => {
         e.preventDefault();
 
+        const token = checkLogin(); // Ensure user is logged in
+        if (!token) {
+            displayMessage("You must be logged in to add items.", "error");
+            return;
+        }
+
         const itemId = document.getElementById("item-id").value;
         const itemName = document.getElementById("item-name").value;
         const itemQuantity = parseInt(document.getElementById("item-quantity").value);
@@ -50,7 +79,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
-                        "Authorization": `Bearer ${localStorage.getItem("token")}` // Include the token for authentication
+                        "Authorization": `Bearer ${token}` // Include the token for authentication
                     },
                     body: JSON.stringify({
                         id: itemId,
@@ -63,15 +92,18 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (response.ok) {
                     fetchItems(); // Refresh the item list
                     inventoryForm.reset(); // Reset the form
+                    displayMessage("Item added successfully!", "success");
                 } else {
                     const errorData = await response.json();
                     console.error("Error adding item:", errorData.message);
+                    displayMessage(errorData.message, "error");
                 }
             } catch (error) {
                 console.error("Error adding item:", error);
+                displayMessage("Error adding item. Please try again.", "error");
             }
         } else {
-            console.error("Please fill all fields correctly.");
+            displayMessage("Please fill all fields correctly.", "error");
         }
     });
 
