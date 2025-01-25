@@ -50,16 +50,16 @@ app.post("/api/signup", async (req, res) => {
       return res.status(400).json({ message: "All fields are required" });
     }
 
-    const existingUser  = await User.findOne({ email });
-    if (existingUser ) {
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
       return res.status(400).json({ message: "Email already registered" });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const newUser  = new User({ username, email, password: hashedPassword });
-    await newUser .save();
+    const newUser = new User({ username, email, password: hashedPassword });
+    await newUser.save();
 
-    res.status(201).json({ message: "User  signed up successfully" });
+    res.status(201).json({ message: "User signed up successfully" });
   } catch (error) {
     console.error("Error signing up:", error);
     res.status(500).json({ message: "Error signing up" });
@@ -91,9 +91,42 @@ app.post('/api/login', async (req, res) => {
     const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
     res.status(200).json({ token });
   } catch (error) {
-    // Log the error for debugging
     console.error('Error logging in:', error);
     res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Profile Route - Fetch user profile
+app.get("/api/profile", verifyToken, async (req, res) => {
+  try {
+    const user = await User.findById(req.userId).select("username email"); // Select only necessary fields
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    res.json({ username: user.username, email: user.email }); // Send user profile details
+  } catch (error) {
+    console.error("Error fetching profile:", error);
+    res.status(500).json({ message: "Error fetching profile" });
+  }
+});
+
+// Fetch all items for the logged-in user
+// Add Item
+app.post("/api/items", verifyToken, async (req, res) => {
+  const { id, name, quantity, price, profit, expiry } = req.body;
+
+  try {
+    const user = await User.findById(req.userId);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    const newItem = { id, name, quantity, price, profit, expiry };
+    user.items.push(newItem);
+    await user.save();
+
+    res.status(201).json({ message: "Item added successfully", item: newItem });
+  } catch (error) {
+    console.error("Error adding item:", error);
+    res.status(500).json({ message: "Error adding item" });
   }
 });
 
@@ -101,34 +134,60 @@ app.post('/api/login', async (req, res) => {
 app.get("/api/items", verifyToken, async (req, res) => {
   try {
     const user = await User.findById(req.userId);
-    if (!user) {
-      return res.status(404).json({ message: "User  not found" });
-    }
-    res.json(user.items); // Return the user's items
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    res.json(user.items); // Return user's inventory items
   } catch (error) {
     console.error("Error fetching items:", error);
     res.status(500).json({ message: "Error fetching items" });
   }
 });
 
-// Add a new item to the user's inventory
-app.post("/api/items", verifyToken, async (req, res) => {
-  const { name, quantity, price } = req.body;
+// Update Item
+app.put("/api/items/:id", verifyToken, async (req, res) => {
+  const { id } = req.params;
+  const { name, quantity, price, profit, expiry } = req.body;
 
   try {
     const user = await User.findById(req.userId);
-    if (!user) {
-      return res.status(404).json({ message: "User  not found" });
-    }
+    if (!user) return res.status(404).json({ message: "User not found" });
 
-    const newItem = { name, quantity, price };
-    user.items.push(newItem); // Add the new item to the user's items
+    const item = user.items.id(id); // Find item by ID
+    if (!item) return res.status(404).json({ message: "Item not found" });
+
+    // Update fields
+    item.name = name || item.name;
+    item.quantity = quantity || item.quantity;
+    item.price = price || item.price;
+    item.profit = profit || item.profit;
+    item.expiry = expiry || item.expiry;
+
+    await user.save();
+    res.json({ message: "Item updated successfully", item });
+  } catch (error) {
+    console.error("Error updating item:", error);
+    res.status(500).json({ message: "Error updating item" });
+  }
+});
+
+// Delete Item
+app.delete("/api/items/:id", verifyToken, async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const user = await User.findById(req.userId);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    const itemIndex = user.items.findIndex((item) => item.id === id);
+    if (itemIndex === -1) return res.status(404).json({ message: "Item not found" });
+
+    user.items.splice(itemIndex, 1); // Remove item
     await user.save();
 
-    res.status(201).json({ message: "Item added successfully", item: newItem });
+    res.json({ message: "Item deleted successfully" });
   } catch (error) {
-    console.error("Error adding item:", error);
-    res.status(500).json({ message: "Error adding item" });
+    console.error("Error deleting item:", error);
+    res.status(500).json({ message: "Error deleting item" });
   }
 });
 

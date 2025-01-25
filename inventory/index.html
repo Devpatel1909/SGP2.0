@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inventory Management</title>
+    <title>Inventory Management | eBazar</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <link rel="stylesheet" href="index.css">
 </head>
 <body>
     <div class="dashboard-container">
         <!-- Sidebar -->
-        <aside class="sidebar">
+        <aside class="sidebar" aria-label="Sidebar Navigation">
             <div class="sidebar-header">
                 <h2>eBazar</h2>
             </div>
@@ -28,12 +28,11 @@
         <!-- Main Content -->
         <main class="main-content">
             <header class="top-header">
-                <input type="text" class="search-bar" placeholder="Search items...">
+                <input type="text" class="search-bar" placeholder="Search items..." title="Search for items">
                 <div class="header-actions">
-                    <i class="fa-solid fa-bell"></i>
-                    <i class="fa-solid fa-flag"></i>
+                    <i class="fa-solid fa-bell" title="Notifications"></i>
+                    <i class="fa-solid fa-flag" title="Reports"></i>
                     <div class="profile">
-                        <img src="https://via.placeholder.com/40" alt="Profile Picture">
                         <span>John Quinn</span>
                     </div>
                 </div>
@@ -41,22 +40,26 @@
 
             <section class="inventory-section">
                 <h2>Inventory Management</h2>
-                <div id="message" class="message"></div>
-                <form id="inventory-form" class="inventory-form">
+
+                <!-- Display Messages -->
+                <div id="message" class="message" role="alert"></div>
+
+                <!-- Inventory Form -->
+                <form id="inventory-form" class="inventory-form" autocomplete="off">
                     <label for="item-id">Item ID:</label>
-                    <input type="text" id="item-id" name="item-id" required>
+                    <input type="text" id="item-id" name="item-id" placeholder="e.g., 12345" required>
 
                     <label for="item-name">Item Name:</label>
-                    <input type="text" id="item-name" name="item-name" required>
+                    <input type="text" id="item-name" name="item-name" placeholder="e.g., Widget Pro" required>
 
                     <label for="item-quantity">Quantity:</label>
-                    <input type="number" id="item-quantity" name="item-quantity" required>
+                    <input type="number" id="item-quantity" name="item-quantity" placeholder="e.g., 50" min="1" required>
 
                     <label for="item-price">Price:</label>
-                    <input type="number" id="item-price" name="item-price" step="0.01" required>
+                    <input type="number" id="item-price" name="item-price" step="0.01" placeholder="e.g., 25.99" required>
 
                     <label for="item-profit">Profit/item:</label>
-                    <input type="number" id="item-profit" name="item-profit" step="0.01" required>
+                    <input type="number" id="item-profit" name="item-profit" step="0.01" placeholder="e.g., 5.00" required>
 
                     <label for="item-expiry">Expiry Date:</label>
                     <input type="date" id="item-expiry" name="item-expiry" required>
@@ -64,6 +67,7 @@
                     <button type="submit">Add Item</button>
                 </form>
 
+                <!-- Inventory Table -->
                 <table id="inventory-table" class="inventory-table">
                     <thead>
                         <tr>
@@ -78,6 +82,9 @@
                     </thead>
                     <tbody>
                         <!-- Inventory items will be dynamically added here -->
+                        <tr>
+                            <td colspan="7" style="text-align: center;">No items found.</td>
+                        </tr>
                     </tbody>
                 </table>
             </section>
