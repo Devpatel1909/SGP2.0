@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard</title>
+    <title>Inventory Management</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="index.css">
 </head>
 <body>
     <div class="dashboard-container">
@@ -15,12 +15,12 @@
                 <h2>eBazar</h2>
             </div>
             <ul class="menu-list">
-                <li><a href="#"><i class="fa-solid fa-house"></i> Dashboard</a></li>
+                <li><a href="dashboard.html"><i class="fa-solid fa-house"></i> Dashboard</a></li>
                 <li><a href="#"><i class="fa-solid fa-box"></i> Products</a></li>
                 <li><a href="#"><i class="fa-solid fa-list"></i> Categories</a></li>
                 <li><a href="#"><i class="fa-solid fa-user"></i> Customers</a></li>
-                <li><a href="#"><i class="fa-solid fa-warehouse"></i> Inventory</a></li>
-                <li><a href="#"><i class="fa-solid fa-file-invoice"></i> Bils</a></li>
+                <li class="active"><a href="#"><i class="fa-solid fa-warehouse"></i> Inventory</a></li>
+                <li><a href="#"><i class="fa-solid fa-file-invoice"></i> Bills</a></li>
                 <li><a href="#"><i class="fa-solid fa-cog"></i> Settings</a></li>
             </ul>
         </aside>
@@ -28,7 +28,7 @@
         <!-- Main Content -->
         <main class="main-content">
             <header class="top-header">
-                <input type="text" class="search-bar" placeholder="Search">
+                <input type="text" class="search-bar" placeholder="Search items...">
                 <div class="header-actions">
                     <i class="fa-solid fa-bell"></i>
                     <i class="fa-solid fa-flag"></i>
@@ -39,63 +39,51 @@
                 </div>
             </header>
 
-            <section class="dashboard-overview">
-                <div class="card green">
-                    <h3>Revenue</h3>
-                    <p>$18,925</p>
-                </div>
-                <div class="card red">
-                    <h3>Expense</h3>
-                    <p>$11,024</p>
-                </div>
-                <div class="card yellow">
-                    <h3>Happy Clients</h3>
-                    <p>8,925</p>
-                </div>
-                <div class="card blue">
-                    <h3>New Store Open</h3>
-                    <p>1,252</p>
-                </div>
-            </section>
+            <section class="inventory-section">
+                <h2>Inventory Management</h2>
+                <div id="message" class="message"></div>
+                <form id="inventory-form" class="inventory-form">
+                    <label for="item-id">Item ID:</label>
+                    <input type="text" id="item-id" name="item-id" required>
 
-            <section class="statistics">
-                <div class="filters">
-                    <button class="filter-btn">Today</button>
-                    <button class="filter-btn">Week</button>
-                    <button class="filter-btn">Month</button>
-                    <button class="filter-btn">Year</button>
-                    <input type="date" class="date-picker">
-                    <button class="apply-filter"><i class="fa-solid fa-filter"></i></button>
-                </div>
+                    <label for="item-name">Item Name:</label>
+                    <input type="text" id="item-name" name="item-name" required>
 
-                <div class="stats-cards">
-                    <div class="stat-card">
-                        <h4>Customers</h4>
-                        <p>14,208</p>
-                    </div>
-                    <div class="stat-card">
-                        <h4>Orders</h4>
-                        <p>2,314</p>
-                    </div>
-                    <div class="stat-card">
-                        <h4>Avg Sale</h4>
-                        <p>$1,770</p>
-                    </div>
-                    <div class="stat-card">
-                        <h4>Total Sale</h4>
-                        <p>$35,000</p>
-                    </div>
-                    <div class="stat-card">
-                        <h4>Visitors</h4>   
-                        <p>11,452</p>
-                    </div>
-                    <div class="stat-card">
-                        <h4>Top Selling Item</h4>
-                        <p>122</p>
-                    </div>
-                </div>
+                    <label for="item-quantity">Quantity:</label>
+                    <input type="number" id="item-quantity" name="item-quantity" required>
+
+                    <label for="item-price">Price:</label>
+                    <input type="number" id="item-price" name="item-price" step="0.01" required>
+
+                    <label for="item-profit">Profit/item:</label>
+                    <input type="number" id="item-profit" name="item-profit" step="0.01" required>
+
+                    <label for="item-expiry">Expiry Date:</label>
+                    <input type="date" id="item-expiry" name="item-expiry" required>
+
+                    <button type="submit">Add Item</button>
+                </form>
+
+                <table id="inventory-table" class="inventory-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Quantity</th>
+                            <th>Price</th>
+                            <th>Profit/item</th>
+                            <th>Expiry Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Inventory items will be dynamically added here -->
+                    </tbody>
+                </table>
             </section>
         </main>
     </div>
+
+    <script src="index.js"></script>
 </body>
 </html>
