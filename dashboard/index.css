@@ -1,10 +1,14 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
+
 /* General Styles */
 body {
     margin: 0;
     font-family: 'Montserrat', sans-serif;
-    background-color: #f7f8fc;
+    background-color: #f4f6fc;
+    color: #333;
     display: flex;
     height: 100vh;
+    overflow: hidden;
 }
 
 .dashboard-container {
@@ -15,24 +19,27 @@ body {
 /* Sidebar */
 .sidebar {
     width: 250px;
-    background-color: #5a4ad1;
+    background: linear-gradient(180deg, #5a4ad1, #4038a8);
     color: #fff;
     padding: 20px;
     display: flex;
     flex-direction: column;
     height: 100vh;
+    box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
 }
 
 .sidebar-header {
     text-align: center;
     margin-bottom: 30px;
-    font-size: 1.5rem;
+    font-size: 2rem;
     font-weight: bold;
+    letter-spacing: 1px;
 }
 
 .menu-list {
     list-style: none;
     padding: 0;
+    margin: 0;
 }
 
 .menu-list li {
@@ -42,132 +49,166 @@ body {
 .menu-list li a {
     text-decoration: none;
     color: #fff;
-    font-size: 1rem;
+    font-size: 1.1rem;
     display: flex;
     align-items: center;
     gap: 15px;
-    padding: 10px 15px;
-    border-radius: 8px;
-    transition: 0.3s;
+    padding: 12px 15px;
+    border-radius: 10px;
+    transition: 0.3s ease;
 }
 
-.menu-list li a:hover {
-    background-color: #7a6eda;
+.menu-list li a:hover,
+.menu-list li.active a {
+    background-color: rgba(255, 255, 255, 0.25);
+    backdrop-filter: blur(5px);
+    transform: scale(1.05);
 }
 
 /* Main Content */
 .main-content {
     flex: 1;
     padding: 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
+    overflow-y: auto;
+    background: #ffffff;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .top-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    margin-bottom: 20px;
 }
 
+/* Search Bar */
 .search-bar {
-    width: 50%;
-    padding: 10px;
+    width: 60%;
+    padding: 12px;
     border: 1px solid #ddd;
-    border-radius: 8px;
+    border-radius: 10px;
+    transition: 0.3s;
+    font-size: 1rem;
 }
 
+.search-bar:focus {
+    outline: none;
+    border-color: #5a4ad1;
+    box-shadow: 0 0 5px rgba(90, 74, 209, 0.4);
+}
+
+/* Header Actions */
 .header-actions {
     display: flex;
     align-items: center;
-    gap: 20px;
+    gap: 15px;
 }
 
 .header-actions i {
     font-size: 1.5rem;
     cursor: pointer;
+    color: #5a4ad1;
+    transition: 0.3s;
 }
 
+.header-actions i:hover {
+    color: #7a6eda;
+}
+
+/* Profile Section Styles */
 .profile {
     display: flex;
     align-items: center;
     gap: 10px;
+    background-color: #f4f6fc; /* Light background for contrast */
+    padding: 10px;
+    border-radius: 10px; /* Rounded corners */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+    font-family: 'Roboto', sans-serif; /* Apply modern font */
 }
 
-.profile img {
-    border-radius: 50%;
-    width: 40px;
-    height: 40px;
+.profile #auth-btn {
+    background-color: #5a4ad1; /* Dark background */
+    color: #fff; /* White text */
+    border: none;
+    border-radius: 5px; /* Slightly rounded corners */
+    padding: 8px 12px; /* Comfortable padding */
+    cursor: pointer;
+    font-size: 0.9rem; /* Slightly smaller font size */
+    font-weight: bold;
+    text-transform: uppercase; /* Makes the text uppercase */
+    transition: background-color 0.3s, transform 0.2s; /* Smooth hover transition */
 }
 
-/* Dashboard Overview */
-.dashboard-overview {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 20px;
+.profile #auth-btn:hover {
+    background-color: #ffffff; /* Slightly lighter on hover */
+    color: #5a4ad1; /* Change text color on hover */
+    transform: scale(1.05); /* Subtle hover animation */
+}
+
+.profile #username {
+    font-size: 1rem; /* Font size for username */
+    color: #5a4ad1; /* Color to match the theme */
+    font-weight: 600; /* Slightly bolder text */
+}
+
+/* Responsive adjustments for profile section */
+@media (max-width: 768px) {
+    .profile {
+        flex-direction: column; /* Stack items vertically on smaller screens */
+        align-items: flex-start; /* Align items to the start */
+    }
+
+    .profile #auth-btn {
+        width: 100%; /* Full width button on smaller screens */
+        text-align: center; /* Center text */
+    }
+}
+
+/* Dashboard Section Styles */
+.dashboard-section {
+    background-color: #fff;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.dashboard-section h2 {
+    margin: 0 0 20px;
+    color: #5a4ad1;
+    font-size: 1.6rem;
+    font-weight: bold;
+    letter-spacing: 1px;
+    text-align: center;
+}
+
+/* Dashboard Cards */
+.dashboard-cards {
+    display: flex;
+    justify-content: space-around;
+    margin-top: 20px;
 }
 
 .card {
+    background-color: #f9f9fc;
+    border-radius: 10px;
     padding: 20px;
-    border-radius: 8px;
-    color: #fff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     text-align: center;
+    flex: 1;
+    margin: 0 10px;
 }
 
-.card.green {
-    background-color: #4caf50;
+.card h3 {
+    color: #5a4ad1;
+    font-size: 1.2rem;
+    font-family: 'Roboto', sans-serif; /* Use Roboto font for card headings */
 }
 
-.card.red {
-    background-color: #f44336;
-}
-
-.card.yellow {
-    background-color: #ff9800;
-}
-
-.card.blue {
-    background-color: #03a9f4;
-}
-
-/* Statistics Section */
-.statistics {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-}
-
-.filters {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.filter-btn, .apply-filter {
-    padding: 10px 20px;
-    background-color: #5a4ad1;
-    color: #fff;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-}
-
-.date-picker {
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-}
-
-.stats-cards {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 20px;
-}
-
-.stat-card {
-    background-color: #fff;
-    border-radius: 8px;
-    padding: 20px;
-    text-align: center;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+.card p {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #333;
+    font-family: 'Roboto', sans-serif; /* Use Roboto font for card text */
 }

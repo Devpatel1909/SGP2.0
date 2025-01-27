@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
+
 /* General Styles */
 body {
     margin: 0;
@@ -29,7 +31,7 @@ body {
 .sidebar-header {
     text-align: center;
     margin-bottom: 30px;
-    font-size: 1.8rem;
+    font-size: 2rem;
     font-weight: bold;
     letter-spacing: 1px;
 }
@@ -47,7 +49,7 @@ body {
 .menu-list li a {
     text-decoration: none;
     color: #fff;
-    font-size: 1rem;
+    font-size: 1.1rem;
     display: flex;
     align-items: center;
     gap: 15px;
@@ -58,8 +60,9 @@ body {
 
 .menu-list li a:hover,
 .menu-list li.active a {
-    background-color: rgba(255, 255, 255, 0.2);
-    backdrop-filter: blur(4px);
+    background-color: rgba(255, 255, 255, 0.25);
+    backdrop-filter: blur(5px);
+    transform: scale(1.05);
 }
 
 /* Main Content */
@@ -79,6 +82,7 @@ body {
     margin-bottom: 20px;
 }
 
+/* Search Bar */
 .search-bar {
     width: 60%;
     padding: 12px;
@@ -94,10 +98,11 @@ body {
     box-shadow: 0 0 5px rgba(90, 74, 209, 0.4);
 }
 
+/* Header Actions */
 .header-actions {
     display: flex;
     align-items: center;
-    gap: 20px;
+    gap: 15px;
 }
 
 .header-actions i {
@@ -111,13 +116,54 @@ body {
     color: #7a6eda;
 }
 
+/* Profile Section Styles */
 .profile {
     display: flex;
     align-items: center;
     gap: 10px;
-    font-size: 1rem;
+    background-color: #f4f6fc; /* Light background for contrast */
+    padding: 10px;
+    border-radius: 10px; /* Rounded corners */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+    font-family: 'Roboto', sans-serif; /* Apply modern font */
+}
+
+.profile #auth-btn {
+    background-color: #5a4ad1; /* Dark background */
+    color: #fff; /* White text */
+    border: none;
+    border-radius: 5px; /* Slightly rounded corners */
+    padding: 8px 12px; /* Comfortable padding */
+    cursor: pointer;
+    font-size: 0.9rem; /* Slightly smaller font size */
     font-weight: bold;
-    color: #333;
+    text-transform: uppercase; /* Makes the text uppercase */
+    transition: background-color 0.3s, transform 0.2s; /* Smooth hover transition */
+}
+
+.profile #auth-btn:hover {
+    background-color: #ffffff; /* Slightly lighter on hover */
+    color: #5a4ad1; /* Change text color on hover */
+    transform: scale(1.05); /* Subtle hover animation */
+}
+
+.profile #username {
+    font-size: 1rem; /* Font size for username */
+    color: #5a4ad1; /* Color to match the theme */
+    font-weight: 600; /* Slightly bolder text */
+}
+
+/* Responsive adjustments for profile section */
+@media (max-width: 768px) {
+    .profile {
+        flex-direction: column; /* Stack items vertically on smaller screens */
+        align-items: flex-start; /* Align items to the start */
+    }
+
+    .profile #auth-btn {
+        width: 100%; /* Full width button on smaller screens */
+        text-align: center; /* Center text */
+    }
 }
 
 /* Inventory Section */
@@ -126,13 +172,15 @@ body {
     border-radius: 10px;
     padding: 20px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    display: flex; /* Use flexbox for alignment */
+    flex-direction: column; /* Stack items vertically */
+    align-items: center; /* Center items horizontally */
 }
 
 .inventory-section h2 {
     margin: 0 0 20px;
-    align-items: center;
     color: #5a4ad1;
-    font-size: 1.4rem;
+    font-size: 1.6rem; /* Increased font size for the title */
     font-weight: bold;
     letter-spacing: 1px;
     text-align: center;
@@ -141,25 +189,27 @@ body {
 /* Inventory Table */
 .inventory-table {
     width: 100%;
+    max-width: 900px; /* Increased max width for better readability */
     border-collapse: collapse;
-    font-size: 1rem;
+    font-size: 1.1rem; /* Increased font size for better readability */
     border-radius: 10px;
     overflow: hidden;
     background-color: #f9f9fc;
+    margin-top: 20px; /* Add some space above the table */
 }
 
 .inventory-table thead th {
     background-color: #5a4ad1;
     color: #fff;
-    padding: 15px;
+    padding: 15px 10px; /* Adjusted padding for header cells */
     border: none;
-    font-weight: bold;
+    font-style: normal  ;
+    font-weight: itali;
     text-align: center;
 }
 
-.inventory-table tbody td,
-.inventory-table tfoot td {
-    padding: 12px;
+.inventory-table tbody td {
+    padding: 15px 10px; /* Increased padding for body cells */
     text-align: center;
     border-bottom: 1px solid #e0e0e0;
 }
@@ -168,18 +218,14 @@ body {
     background-color: #f1f5ff;
 }
 
-.inventory-table tbody tr:nth-child(even) {
-    background-color: #f9faff;
-}
-
 .inventory-table tfoot input {
-    padding: 10px;
+    padding: 12px; /* Increased padding for input fields */
     border: 1px solid #ddd;
     border-radius: 8px;
-    width: 100%;
-    text-align: center;
+    width: 90%;
     box-sizing: border-box;
-    transition: 0.3s;
+    transition: 1s;
+    margin-left: 20px;
 }
 
 .inventory-table tfoot input:focus {
@@ -188,35 +234,35 @@ body {
     box-shadow: 0 0 5px rgba(90, 74, 209, 0.4);
 }
 
-/* Button Styles */
 #add-item-btn {
-    padding: 10px 20px;
+    padding: 11px 20px; /* Increased padding for the button */
     background-color: #5a4ad1;
     color: #fff;
     border: none;
     border-radius: 8px;
-    font-size: 1rem;
+    font-size: 1.0rem; /* Increased font size for the button */
     cursor: pointer;
     transition: 0.3s ease;
+    margin-left: 8px;
 }
 
 #add-item-btn:hover {
     background-color: #7a6eda;
 }
 
-.confirm-btn {
-    padding: 10px 15px;
-    background-color: #5a4ad1;
-    color: #fff;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 0.9rem;
-    transition: 0.3s;
+/* Loading Spinner */
+#loading-spinner {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: none;
+    font-size: 1.5em;
+    color: #3498db;
 }
 
-.confirm-btn:hover {
-    background-color: #7a6eda;
+#loading-spinner.visible {
+    display: block;
 }
 
 /* Responsive Design */
@@ -237,17 +283,12 @@ body {
         flex-direction: column;
         gap: 10px;
     }
-}
-#loading-spinner {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    display: none;
-    font-size: 1.5em;
-    color: #3498db;
-}
 
-#loading-spinner.visible {
-    display: block;
+    .profile {
+        gap: 5px;
+    }
+
+    .inventory-table {
+        width: 100%; /* Full width on smaller screens */
+    }
 }
