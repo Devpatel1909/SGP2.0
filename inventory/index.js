@@ -1,10 +1,9 @@
 document.addEventListener("DOMContentLoaded", () => {
-    const inventoryForm = document.getElementById("inventory-form");
+    const BASE_URL = "http://localhost:3000";
     const inventoryTable = document.getElementById("inventory-table");
     const messageDiv = document.getElementById("message");
-    const searchInput = document.querySelector(".search-bar");
+    const addItemButton = document.getElementById("add-item-btn");
 
-    // Check if user is logged in
     function checkLogin() {
         const token = localStorage.getItem("token");
         if (!token) {
@@ -13,72 +12,47 @@ document.addEventListener("DOMContentLoaded", () => {
         return token;
     }
 
-    // Display messages
     function displayMessage(message, type = "error") {
         messageDiv.textContent = message;
         messageDiv.className = `message ${type}`;
-        messageDiv.style.display = "block"; // Show message
+        messageDiv.style.display = "block";
         setTimeout(() => {
-            messageDiv.textContent = "";
-            messageDiv.className = "message"; // Reset the message style
-            messageDiv.style.display = "none"; // Hide message after 3 seconds
+            messageDiv.style.display = "none";
         }, 3000);
     }
 
-    // Fetch and display the user profile
     async function fetchProfile() {
-        const token = localStorage.getItem("token");
-        if (!token) {
-            window.location.href = "../login/index.html"; // Redirect if not logged in
-            return;
-        }
-
+        const token = checkLogin();
         try {
-            const response = await fetch("http://localhost:3000/api/profile", {
-                headers: {
-                    "Authorization": `Bearer ${token}`,
-                },
+            const response = await fetch(`${BASE_URL}/api/profile`, {
+                headers: { "Authorization": `Bearer ${token}` },
             });
-
-            if (!response.ok) throw new Error("Failed to fetch profile");
             const { username } = await response.json();
-            const profileNameSpan = document.querySelector(".profile span");
-            profileNameSpan.textContent = username; // Update the profile name
-        } catch (error) {
-            console.error("Error fetching profile:", error);
-            const profileNameSpan = document.querySelector(".profile span");
-            profileNameSpan.textContent = "Guest"; // Fallback for errors
+            document.querySelector(".profile span").textContent = username;
+        } catch {
+            document.querySelector(".profile span").textContent = "Guest";
         }
     }
 
-    // Fetch inventory items from the server
     async function fetchItems() {
         const token = checkLogin();
         try {
-            const response = await fetch("http://localhost:3000/api/items", {
-                headers: {
-                    "Authorization": `Bearer ${token}`,
-                },
+            const response = await fetch(`${BASE_URL}/api/items`, {
+                headers: { "Authorization": `Bearer ${token}` },
             });
-            if (!response.ok) throw new Error("Failed to fetch items.");
+            if (!response.ok) throw new Error("Failed to fetch items");
             const items = await response.json();
             renderInventory(items);
         } catch (error) {
-            displayMessage(error.message, "error");
+            displayMessage(error.message);
         }
     }
 
-    // Render inventory items in the table
     function renderInventory(items) {
         const tbody = inventoryTable.querySelector("tbody");
         tbody.innerHTML = "";
 
-        if (items.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="7" style="text-align: center;">No items found.</td></tr>`;
-            return;
-        }
-
-        items.forEach((item) => {
+        items.forEach(item => {
             const row = document.createElement("tr");
             row.innerHTML = `
                 <td>${item.id}</td>
@@ -86,24 +60,28 @@ document.addEventListener("DOMContentLoaded", () => {
                 <td>${item.quantity}</td>
                 <td>${item.price}</td>
                 <td>${item.profit}</td>
-                <td>${item.expiry}</td>
+                <td>${new Date(item.expiry).toISOString().split('T')[0]}</td>
                 <td>
-                    <button class="edit-btn" data-id="${item.id}"><i class="fa-solid fa-edit"></i></button>
-                    <button class="delete-btn" data-id="${item.id}"><i class="fa-solid fa-trash"></i></button>
-                </td>
-            `;
+                    <button class="edit-btn" data-id="${item.id}">
+                        <i class="fa-solid fa-edit"></i>
+                    </button>
+                    <button class="delete-btn" data-id="${item.id}">
+                        <i class="fa-solid fa-trash"></i>
+                    </button>
+                </td>`;
             tbody.appendChild(row);
         });
     }
 
-    // Handle item actions (Edit or Delete)
     inventoryTable.addEventListener("click", async (e) => {
         const token = checkLogin();
-        const id = e.target.closest("button")?.dataset.id;
-        if (!id) return;
+        const button = e.target.closest("button");
+        if (!button) return;
 
-        if (e.target.closest(".edit-btn")) {
-            const row = e.target.closest("tr");
+        const id = button.dataset.id;
+
+        if (button.classList.contains("edit-btn")) {
+            const row = button.closest("tr");
             const updatedItem = {
                 name: prompt("Enter new name:", row.cells[1].textContent),
                 quantity: parseInt(prompt("Enter new quantity:", row.cells[2].textContent)),
@@ -112,78 +90,103 @@ document.addEventListener("DOMContentLoaded", () => {
                 expiry: prompt("Enter new expiry date:", row.cells[5].textContent),
             };
 
+            if (!isValidItem(updatedItem)) {
+                return displayMessage("Invalid input data", "error");
+            }
+
             try {
-                const response = await fetch(`http://localhost:3000/api/items/${id}`, {
+                const response = await fetch(`${BASE_URL}/api/items/${id}`, {
                     method: "PUT",
                     headers: {
                         "Content-Type": "application/json",
-                        "Authorization": `Bearer ${token}`,
+                        "Authorization": `Bearer ${token}`
                     },
-                    body: JSON.stringify(updatedItem),
+                    body: JSON.stringify(updatedItem)
                 });
 
-                if (!response.ok) throw new Error("Failed to update item.");
-                fetchItems(); // Refresh items
-                displayMessage("Item updated successfully!", "success");
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || "Update failed");
+                }
+
+                fetchItems();
+                displayMessage("Item updated!", "success");
             } catch (error) {
-                displayMessage(error.message, "error");
+                displayMessage(error.message);
             }
         }
 
-        if (e.target.closest(".delete-btn")) {
-            if (!confirm("Are you sure you want to delete this item?")) return;
+        if (button.classList.contains("delete-btn")) {
+            if (!confirm("Delete this item?")) return;
 
             try {
-                const response = await fetch(`http://localhost:3000/api/items/${id}`, {
+                const response = await fetch(`${BASE_URL}/api/items/${id}`, {
                     method: "DELETE",
-                    headers: {
+                    headers: { 
                         "Authorization": `Bearer ${token}`,
-                    },
+                        "Content-Type": "application/json"
+                    }
                 });
 
-                if (!response.ok) throw new Error("Failed to delete item.");
-                fetchItems(); // Refresh items
-                displayMessage("Item deleted successfully!", "success");
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || "Delete failed");
+                }
+
+                fetchItems();
+                displayMessage("Item deleted!", "success");
             } catch (error) {
-                displayMessage(error.message, "error");
+                displayMessage(error.message);
             }
         }
     });
 
-    // Add new item
-    inventoryForm.addEventListener("submit", async (e) => {
-        e.preventDefault();
+    addItemButton.addEventListener("click", async () => {
         const token = checkLogin();
-
         const newItem = {
-            id: document.getElementById("item-id").value,
-            name: document.getElementById("item-name").value,
-            quantity: parseInt(document.getElementById("item-quantity").value),
-            price: parseFloat(document.getElementById("item-price").value),
-            profit: parseFloat(document.getElementById("item-profit").value),
-            expiry: document.getElementById("item-expiry").value,
+            name: document.getElementById("new-name").value,
+            quantity: parseInt(document.getElementById("new-quantity").value),
+            price: parseFloat(document.getElementById("new-price").value),
+            profit: parseFloat(document.getElementById("new-profit").value),
+            expiry: document.getElementById("new-expiry").value,
         };
 
+        if (!isValidItem(newItem)) {
+            return displayMessage("Invalid input data", "error");
+        }
+
         try {
-            const response = await fetch("http://localhost:3000/api/items", {
+            const response = await fetch(`${BASE_URL}/api/items`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
-                    "Authorization": `Bearer ${token}`,
+                    "Authorization": `Bearer ${token}`
                 },
-                body: JSON.stringify(newItem),
+                body: JSON.stringify(newItem)
             });
 
-            if (!response.ok) throw new Error("Failed to add item.");
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || "Add failed");
+            }
+
             fetchItems();
-            inventoryForm.reset();
-            displayMessage("Item added successfully!", "success");
+            displayMessage("Item added!", "success");
+            ["new-name", "new-quantity", "new-price", "new-profit", "new-expiry"]
+                .forEach(id => document.getElementById(id).value = "");
         } catch (error) {
-            displayMessage(error.message, "error");
+            displayMessage(error.message);
         }
     });
 
-    // Fetch items and profile on page load
+    function isValidItem(item) {
+        return item.name && 
+               item.quantity >= 0 && 
+               item.price >= 0 && 
+               item.profit >= 0 && 
+               !isNaN(new Date(item.expiry).getTime());
+    }
+
     fetchProfile();
     fetchItems();
 });

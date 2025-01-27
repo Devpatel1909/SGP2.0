@@ -32,7 +32,7 @@ signupForm.addEventListener("submit", async (e) => {
         alert("Password must be at least 8 characters long.");
         return;
     }
-
+z
     try {
         const response = await fetch("http://localhost:3000/api/signup", {
             method: "POST",
