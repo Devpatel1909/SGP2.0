@@ -98,19 +98,16 @@ body {
     border-color: #5a4ad1;
     box-shadow: 0 0 5px rgba(90, 74, 209, 0.4);
 }
-/* Inventory Table Styling for Perfect Fit */
-.inventory-table {
-    width: 100%; /* Take full available width */
-    max-width: 100%; /* Restrict overflow */
+.billing-table {
+    width: 100%;
     border-collapse: collapse;
     background-color: #ffffff;
     margin-top: 20px;
     border-radius: 10px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    overflow: hidden;
 }
 
-.inventory-table thead th {
+.billing-table thead th {
     background-color: #5a4ad1;
     color: #ffffff;
     padding: 15px;
@@ -119,76 +116,24 @@ body {
     border-bottom: 2px solid #e0e0e0;
 }
 
-.inventory-table tbody td {
+.billing-table tbody td {
     padding: 12px;
     text-align: center;
     border-bottom: 1px solid #e0e0e0;
 }
 
-.inventory-table tbody tr:hover {
+.billing-table tbody tr:hover {
     background-color: #f1f5ff;
 }
 
-/* Responsive Scroll for Overflow Handling */
-.inventory-table-wrapper {
-    max-width: 100%;
-    overflow-x: auto; /* Handle horizontal overflow gracefully */
+tfoot tr {
+    background-color: #f9f9f9; /* Distinguish the footer row */
 }
 
-.inventory-table-wrapper table {
-    width: 100%; /* Ensure table stays fluid */
+tfoot td {
+    text-align: center;
+    padding: 10px;
 }
-
-/* Responsive Adjustments */
-@media (max-width: 768px) {
-    .inventory-table thead {
-        display: none;
-    }
-
-    .inventory-table tbody td {
-        display: block;
-        width: 100%;
-        text-align: right;
-        position: relative;
-        padding-left: 50%;
-    }
-
-    .inventory-table tbody td::before {
-        content: attr(data-label);
-        position: absolute;
-        left: 0;
-        width: 50%;
-        padding-left: 15px;
-        font-weight: bold;
-        text-align: left;
-    }
-
-    .inventory-table tbody tr {
-        display: block;
-        margin-bottom: 10px;
-    }
-}
-
-/* Header Actions */
-.header-actions {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-}
-
-.header-actions i {
-    font-size: 1.5rem;
-    cursor: pointer;
-    color: #5a4ad1;
-    transition: 0.3s;
-}
-
-.header-actions i:hover {
-    color: #7a6eda;
-}
-
-/* Profile Section Styles */
-/* Product Section */
 .profile {
     display: flex;
     align-items: center;
@@ -223,40 +168,21 @@ body {
     font-size: 1rem; /* Font size for username */
     color: #5a4ad1; /* Color to match the theme */
     font-weight: 600; /* Slightly bolder text */
+}   
+/* Header Actions */
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 15px;
 }
 
-/* Responsive adjustments for profile section */
-@media (max-width: 768px) {
-    .profile {
-        flex-direction: column; /* Stack items vertically on smaller screens */
-        align-items: flex-start; /* Align items to the start */
-    }
-
-    .profile #auth-btn {
-        width: 100%; /* Full width button on smaller screens */
-        text-align: center; /* Center text */
-    }
+.header-actions i {
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: #5a4ad1;
+    transition: 0.3s;
 }
-/* Responsive adjustments */
-@media (max-width: 768px) {
-    .sidebar {
-        width: 200px;
-    }
 
-    .menu-list li a {
-        font-size: 0.9rem;
-    }
-
-    .search-bar {
-        width: 100%;
-    }
-
-    .header-actions {
-        flex-direction: column;
-        gap: 10px;
-    }
-
-    .profile {
-        gap: 5px;
-    }
+.header-actions i:hover {
+    color: #7a6eda;
 }

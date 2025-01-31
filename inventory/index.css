@@ -18,7 +18,7 @@ body {
 
 /* Sidebar */
 .sidebar {
-    width: 250px;
+    width: 220px;
     background: linear-gradient(180deg, #5a4ad1, #4038a8);
     color: #fff;
     padding: 20px;
@@ -49,7 +49,7 @@ body {
 .menu-list li a {
     text-decoration: none;
     color: #fff;
-    font-size: 1.1rem;
+    font-size: 1rem;
     display: flex;
     align-items: center;
     gap: 15px;
@@ -167,49 +167,28 @@ body {
 }
 
 /* Inventory Section */
-.inventory-section {
-    background-color: #fff;
-    border-radius: 10px;
-    padding: 20px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    display: flex; /* Use flexbox for alignment */
-    flex-direction: column; /* Stack items vertically */
-    align-items: center; /* Center items horizontally */
-}
-
-.inventory-section h2 {
-    margin: 0 0 20px;
-    color: #5a4ad1;
-    font-size: 1.6rem; /* Increased font size for the title */
-    font-weight: bold;
-    letter-spacing: 1px;
-    text-align: center;
-}
-
-/* Inventory Table */
 .inventory-table {
-    width: 100%;
-    max-width: 900px; /* Increased max width for better readability */
+    width: 100%; /* Take full available width */
+    max-width: 100%; /* Restrict overflow */
     border-collapse: collapse;
-    font-size: 1.1rem; /* Increased font size for better readability */
+    background-color: #ffffff;
+    margin-top: 20px;
     border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     overflow: hidden;
-    background-color: #f9f9fc;
-    margin-top: 20px; /* Add some space above the table */
 }
 
 .inventory-table thead th {
     background-color: #5a4ad1;
-    color: #fff;
-    padding: 15px 10px; /* Adjusted padding for header cells */
-    border: none;
-    font-style: normal  ;
-    font-weight: itali;
+    color: #ffffff;
+    padding: 15px;
+    font-weight: bold;
     text-align: center;
+    border-bottom: 2px solid #e0e0e0;
 }
 
 .inventory-table tbody td {
-    padding: 15px 10px; /* Increased padding for body cells */
+    padding: 12px;
     text-align: center;
     border-bottom: 1px solid #e0e0e0;
 }
@@ -218,37 +197,39 @@ body {
     background-color: #f1f5ff;
 }
 
-.inventory-table tfoot input {
-    padding: 12px; /* Increased padding for input fields */
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    width: 90%;
-    box-sizing: border-box;
-    transition: 1s;
-    margin-left: 20px;
+/* Responsive Scroll for Overflow Handling */
+.inventory-table-wrapper {
+    max-width: 100%;
+    overflow-x: auto; /* Handle horizontal overflow gracefully */
 }
 
-.inventory-table tfoot input:focus {
-    outline: none;
-    border-color: #5a4ad1;
-    box-shadow: 0 0 5px rgba(90, 74, 209, 0.4);
+.inventory-table-wrapper table {
+    width: 100%; /* Ensure table stays fluid */
 }
 
 #add-item-btn {
-    padding: 11px 20px; /* Increased padding for the button */
+    padding: 2px 19px;
     background-color: #5a4ad1;
-    color: #fff;
-    border: none;
-    border-radius: 8px;
-    font-size: 1.0rem; /* Increased font size for the button */
+    color: white;
+    font-size: 1rem;
     cursor: pointer;
-    transition: 0.3s ease;
-    margin-left: 8px;
+    border-radius: 6px;
+    text-align: center;
 }
 
 #add-item-btn:hover {
     background-color: #7a6eda;
 }
+
+tfoot tr {
+    background-color: #f9f9f9; /* Distinguish the footer row */
+}
+
+tfoot td {
+    text-align: center;
+    padding: 10px;
+}
+
 
 /* Loading Spinner */
 #loading-spinner {

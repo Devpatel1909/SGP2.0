@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Products | eBazar</title>
+    <title>Items | eBazar</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <link rel="stylesheet" href="index.css">
 </head>
@@ -17,10 +17,10 @@
             <ul class="menu-list">
                 <li><a href="../dashboard/index.html"><i class="fa-solid fa-house"></i> Dashboard</a></li>
                 <li class="active"><a href="#"><i class="fa-solid fa-box"></i> Products</a></li>
-                <li><a href="#"><i class="fa-solid fa-list"></i> Categories</a></li>
-                <li><a href="#"><i class="fa-solid fa-user"></i> Customers</a></li>
+                <li><a href="../Billing/index.html"><i class="fa-solid fa-user"></i> Billing</a></li>
+                <li><a href="#"><i class="fa-solid fa-list"></i> Custmores</a></li>
                 <li><a href="../inventory/index.html"><i class="fa-solid fa-warehouse"></i> Inventory</a></li>
-                <li><a href="#"><i class="fa-solid fa-file-invoice"></i> Bills</a></li>
+                <li><a href=""><i class="fa-solid fa-file-invoice"></i> Bills</a></li>
                 <li><a href="#"><i class="fa-solid fa-cog"></i> Settings</a></li>
             </ul>
         </aside>
@@ -28,7 +28,7 @@
         <!-- Main Content -->
         <main class="main-content">
             <header class="top-header">
-                <input type="text" class="search-bar" placeholder="Search products...">
+                <input type="text" class="search-bar" placeholder="Search items...">
                 <div class="header-actions">
                     <i class="fa-solid fa-bell"></i>
                     <i class="fa-solid fa-flag"></i>
@@ -40,33 +40,26 @@
             </header>
 
             <section class="product-section">
-                <h2>Products</h2>
+                <h2>Items</h2>
                 <div id="message" class="message" role="alert"></div>
-                <div class="product-grid">
-                    <!-- Example product items -->
-                    <div class="product-card">
-                        <i class="fa-solid fa-box fa-3x"></i>
-                        <h3>Product 1</h3>
-                        <p>Price: $10</p>
-                    </div>
-                    <div class="product-card">
-                        <i class="fa-solid fa-box fa-3x"></i>
-                        <h3>Product 2</h3>
-                        <p>Price: $20</p>
-                    </div>
-                    <div class="product-card">
-                        <i class="fa-solid fa-box fa-3x"></i>
-                        <h3>Product 3</h3>
-                        <p>Price: $15</p>
-                    </div>
-                    <div class="product-card">
-                        <i class="fa-solid fa-box fa-3x"></i>
-                        <h3>Product 4</h3>
-                        <p>Price: $25</p>
-                    </div>
-                </div>
+                
+                <table id="inventory-table" class="inventory-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Quantity</th>
+                            <th>Price</th>
+                            <th>Profit/item</th>
+                            <th>Expiry Date</th>
+                            
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Dynamic rows will be rendered here -->
+                    
+
             </section>
-            
         </main>
     </div>
 

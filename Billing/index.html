@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inventory Management | eBazar</title>
+    <title>Billing Management | eBazar</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <link rel="stylesheet" href="index.css">
 </head>
@@ -17,10 +17,10 @@
             <ul class="menu-list">
                 <li><a href="../dashboard/index.html"><i class="fa-solid fa-house"></i> Dashboard</a></li>
                 <li><a href="../product/index.html"><i class="fa-solid fa-box"></i> Products</a></li>
-                <li><a href="../Billing/index.html "><i class="fa-solid fa-list"></i> Billing</a></li>
+                <li class="active"><a href="#"><i class="fa-solid fa-list"></i> Billing</a></li>
                 <li><a href="#"><i class="fa-solid fa-user"></i> Customers</a></li>
-                <li class="active"><a href="#"><i class="fa-solid fa-warehouse"></i> Inventory</a></li>
-                <li><a href="../Billing/index.html"><i class="fa-solid fa-file-invoice"></i> Bills</a></li>
+                <li><a href="../inventory/index.html"><i class="fa-solid fa-warehouse"></i> Inventory</a></li>
+                <li><a href="#"><i class="fa-solid fa-file-invoice"></i> Bills</a></li>
                 <li><a href="#"><i class="fa-solid fa-cog"></i> Settings</a></li>
             </ul>
         </aside>
@@ -28,7 +28,7 @@
         <!-- Main Content -->
         <main class="main-content">
             <header class="top-header">
-                <h2>Inventory</h2>
+                <h2>Billing</h2>
                 <div id="message" class="message" role="alert"></div>
                 <div class="header-actions">
                     <i class="fa-solid fa-bell"></i>
@@ -37,40 +37,44 @@
                         <span id="username">Guest</span>
                         <button id="auth-btn">Login</button>
                     </div>
-                    
-                    
                 </div>
+
             </header>
 
-            <section class="inventory-section">
-             
+            <section class="billing-section">
+               
 
-                <!-- Inventory Table -->
-                <table id="inventory-table" class="inventory-table">
+                <!-- Billing Table -->
+                <table id="billing-table" class="billing-table">
                     <thead>
                         <tr>
-                            <th>ID</th>
-                            <th>Name</th>
-                            <th>Quantity</th>
-                            <th>Price</th>
-                            <th>Profit/item</th>
-                            <th>Expiry Date</th>
+                            <th>Bill ID</th>
+                            <th>Customer Name</th>
+                            <th>Date</th>
+                            <th>Total Amount</th>
+                            <th>Status</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         <!-- Dynamic rows will be rendered here -->
                     </tbody>
-                    <!-- New Item Row -->
+                    <!-- New Bill Row -->
                     <tfoot>
                         <tr>
-                            <td></td> <!-- Removed ID input -->
-                            <td><input type="text" id="new-name" placeholder="Name" required></td>
-                            <td><input type="number" id="new-quantity" placeholder="Quantity" required></td>
-                            <td><input type="number" id="new-price" placeholder="Price" required></td>
-                            <td><input type="number" id="new-profit" placeholder="Profit" required></td>
-                            <td><input type="date" id="new-expiry" required></td>
-                            <td><button id="add-item-btn">Add</button></td>
+                            <td><input type="text" id="new-bill-id" placeholder="Bill ID" required></td>
+                            <td><input type="text" id="new-customer-name" placeholder="Customer Name" required></td>
+                            <td><input type="date" id="new-bill-date" required></td>
+                            <td><input type="number" id="new-total-amount" placeholder="Total Amount" required></td>
+                            <td>
+                                <select id="new-status" required>
+                                    <option value="">Select Status</option>
+                                    <option value="Paid">Paid</option>
+                                    <option value="Pending">Pending</option>
+                                    <option value="Cancelled">Cancelled</option>
+                                </select>
+                            </td>
+                            <td><button id="add-bill-btn">Add Bill</button></td>
                         </tr>
                     </tfoot>
                 </table>
