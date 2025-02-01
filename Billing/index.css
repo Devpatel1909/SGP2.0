@@ -1,4 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
 
 /* General Styles */
 @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
@@ -124,50 +123,40 @@ body {
     display: flex;
     align-items: center;
     gap: 10px;
-    background-color: #f4f6fc; /* Light background for contrast */
+    background-color: #f4f6fc;
     padding: 10px;
-    border-radius: 10px; /* Rounded corners */
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Subtle shadow */
-    font-family: 'Roboto', sans-serif; /* Apply modern font */
+    border-radius: 10px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    font-family: 'Montserrat', sans-serif; /* Updated to use Montserrat */
 }
 
 .profile #auth-btn {
-    background-color: #5a4ad1; /* Dark background */
-    color: #fff; /* White text */
+    background-color: #5a4ad1;
+    color: #fff;
     border: none;
-    border-radius: 5px; /* Slightly rounded corners */
-    padding: 8px 12px; /* Comfortable padding */
+    border-radius: 5px;
+    padding: 8px 12px;
     cursor: pointer;
-    font-size: 0.9rem; /* Slightly smaller font size */
+    font-size: 0.9rem;
     font-weight: bold;
-    text-transform: uppercase; /* Makes the text uppercase */
-    transition: background-color 0.3s, transform 0.2s; /* Smooth hover transition */
+    text-transform: uppercase;
+    transition: background-color 0.3s, transform 0.2s;
+    font-family: 'Montserrat', sans-serif; /* Added font-family */
 }
 
 .profile #auth-btn:hover {
-    background-color: #ffffff; /* Slightly lighter on hover */
-    color: #5a4ad1; /* Change text color on hover */
-    transform: scale(1.05); /* Subtle hover animation */
+    background-color: #ffffff;
+    color: #5a4ad1;
+    transform: scale(1.05);
 }
 
 .profile #username {
-    font-size: 1rem; /* Font size for username */
-    color: #5a4ad1; /* Color to match the theme */
-    font-weight: 600; /* Slightly bolder text */
+    font-size: 1rem;
+    color: #5a4ad1;
+    font-weight: 600;
+    font-family: 'Montserrat', sans-serif; /* Added font-family */
 }
 
-/* Responsive adjustments for profile section */
-@media (max-width: 768px) {
-    .profile {
-        flex-direction: column; /* Stack items vertically on smaller screens */
-        align-items: flex-start; /* Align items to the start */
-    }
-
-    .profile #auth-btn {
-        width: 100%; /* Full width button on smaller screens */
-        text-align: center; /* Center text */
-    }
-}
 
 /* Billing Container Styles */
 .billing-container {
@@ -238,7 +227,6 @@ body {
     outline: none;
     box-shadow: 0 0 5px rgba(90, 74, 209, 0.4);
 }
-
 /* Billing Items Table */
 /* Billing Items Table */
 .billing-items table {
@@ -277,7 +265,9 @@ body {
 .billing-items .item-total {
     font-weight: bold; /* Make total amount bold */
 }
-
+.table-container{
+    width: 1005;
+}
 /* Billing Totals */
 .billing-totals table {
     width: 50%;
@@ -375,4 +365,36 @@ body {
     .billing-footer button {
         width: 100%;
     }
+}
+
+.invoice-info {
+    display: flex;
+    flex-direction: column; /* Stacks the info groups vertically */
+    gap: 4px; /* Adds space between each info group */  
+}
+.info-group {
+    display: flex;
+    align-items: center; /* Aligns label and input horizontally */
+    gap: 10px; /* Adds space between label and input */
+}
+
+.info-group label {
+    font-weight: bold; /* Makes labels bold */
+    min-width: 80px; /* Ensures labels have a consistent width */
+    text-align: right; /* Aligns label text to the right */
+}
+
+.info-group input {
+    padding: 5px; /* Adds padding inside inputs */
+    border: 1px solid #ccc; /* Adds a border to inputs */
+    border-radius: 4px; /* Rounds the corners of inputs */
+    font-size: 14px; /* Sets font size for inputs */
+}
+
+.info-group input[type="date"] {
+    width: 150px; /* Sets a specific width for the date input */
+}
+
+.info-group input[type="text"] {
+    width: 200px; /* Sets a specific width for text inputs */
 }

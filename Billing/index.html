@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Billing | eBazar</title>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="index.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
 </head>
@@ -13,8 +13,7 @@
         <!-- Sidebar -->
         <aside class="sidebar">
             <div class="sidebar-header">
-                <i class="fas fa-shopping-cart"></i>
-                <h2>eBazar</h2>
+                <h2><i class></i> eBazar</h2>
             </div>
             <ul class="menu-list">
                 <li><a href="../dashboard/index.html"><i class="fas fa-home"></i><span>Dashboard</span></a></li>
@@ -22,6 +21,7 @@
                 <li class="active"><a href="../billing/index.html"><i class="fas fa-file-invoice"></i><span>Billing</span></a></li>
                 <li><a href="../customers/index.html"><i class="fas fa-users"></i><span>Customers</span></a></li>
                 <li><a href="../inventory/index.html"><i class="fas fa-warehouse"></i><span>Inventory</span></a></li>
+                <li><a href="../bills/index.html"><i class="fas fa-file-invoice"></i><span>Bills</span></a></li>
                 <li><a href="../settings/index.html"><i class="fas fa-cog"></i><span>Settings</span></a></li>
             </ul>
         </aside>
@@ -30,17 +30,15 @@
         <main class="main-content">
             <header class="top-header">
                 <h2>Billing</h2>
+                <div id="message" class="message" role="alert"></div>
                 <div class="header-actions">
-        
                     <div class="notification-icons">
                         <i class="fas fa-bell"></i>
-                        <i class="fas fa-envelope"></i>
+                        <i class="fas fa-flag"></i>
                     </div>
                     <div class="profile">
-                        <span id="username">John Doe</span>
-                        <button id="auth-btn">
-                            <i class="fas fa-user"></i> Profile
-                        </button>
+                        <span id="username">Guest</span>
+                        <button id="auth-btn">Login</button>
                     </div>
                 </div>
             </header>
@@ -59,11 +57,11 @@
                             </div>
                             <div class="info-group">
                                 <label for="invoice-no">Invoice No:</label>
-                                <input type="text" id="invoice-no" value="INV-2024-001">
+                                <input type="text" id="invoice-no" value="INV-2024-001" readonly>
                             </div>
                             <div class="info-group">
                                 <label for="cashier">Cashier:</label>
-                                <input type="text" id="cashier" value="John Doe">
+                                <input type="text" id="cashier" value="Guest" readonly>
                             </div>
                         </div>
                     </div>
@@ -75,7 +73,7 @@
                     <div class="details-grid">
                         <div class="form-group">
                             <label for="customer-name">Customer Name</label>
-                            <input type="text" id="customer-name" placeholder="Enter customer name">
+                            <input type="text" id="customer-name" placeholder="Enter customer name" required>
                         </div>
                         <div class="form-group">
                             <label for="customer-email">Email</label>
@@ -83,11 +81,11 @@
                         </div>
                         <div class="form-group">
                             <label for="customer-phone">Phone</label>
-                            <input type="tel" id="customer-phone" placeholder="Enter phone number">
+                            <input type="tel" id="customer-phone" placeholder="Enter phone number" required>
                         </div>
-                        <div class="form-group">
+                        <div class="form-group full-width">
                             <label for="customer-address">Address</label>
-                            <textarea id="customer-address" placeholder="Enter address"></textarea>
+                            <textarea id="customer-address" placeholder="Enter address" rows="3"></textarea>
                         </div>
                     </div>
                 </div>
@@ -96,7 +94,7 @@
                 <div class="billing-items">
                     <div class="table-header">
                         <h3>Bill Items</h3>
-                        <button class="add-item-btn">
+                        <button class="add-item-btn" type="button">
                             <i class="fas fa-plus"></i> Add Item
                         </button>
                     </div>
@@ -104,31 +102,31 @@
                         <table>
                             <thead>
                                 <tr>
-                                    <th>Item</th>
-                                    <th>Description</th>
+                                    <th>Product ID</th>
+                                    <th>Product Name</th>
+                                    <th>Price (MRP)</th>
                                     <th>Quantity</th>
-                                    <th>Unit Price</th>
                                     <th>Discount</th>
                                     <th>Total</th>
                                     <th>Action</th>
                                 </tr>
                             </thead>
-                            <tbody>
+                            <tbody id="bill-items">
                                 <tr>
+                                    <td><input type="number" class="product-id" placeholder="Enter ID" min="1"></td>
                                     <td>
-                                        <select class="item-select">
-                                            <option>Select Item</option>
-                                            <option>Product A</option>
-                                            <option>Product B</option>
+                                        <select class="product-select" required>
+                                            <option value="">Select Product</option>
+                                            <option value="1">Product A</option>
+                                            <option value="2">Product B</option>
                                         </select>
                                     </td>
-                                    <td><input type="text" class="item-description" placeholder="Description"></td>
+                                    <td><input type="number" class="item-price" value="0.00" step="0.01" readonly></td>
                                     <td><input type="number" class="item-quantity" value="1" min="1"></td>
-                                    <td><input type="number" class="item-price" value="0.00" step="0.01"></td>
-                                    <td><input type="number" class="item-discount" value="0" min="0"></td>
+                                    <td><input type="number" class="item-discount" value="0" min="0" max="100"></td>
                                     <td class="item-total">$0.00</td>
                                     <td>
-                                        <button class="delete-row">
+                                        <button class="delete-row" type="button">
                                             <i class="fas fa-trash"></i>
                                         </button>
                                     </td>
@@ -166,7 +164,8 @@
                     <div class="payment-grid">
                         <div class="form-group">
                             <label for="payment-method">Payment Method</label>
-                            <select id="payment-method">
+                            <select id="payment-method" required>
+                                <option value="">Select Payment Method</option>
                                 <option value="cash">Cash</option>
                                 <option value="card">Credit Card</option>
                                 <option value="bank">Bank Transfer</option>
@@ -174,28 +173,28 @@
                         </div>
                         <div class="form-group">
                             <label for="payment-status">Payment Status</label>
-                            <select id="payment-status">
-                                <option value="paid">Paid</option>
+                            <select id="payment-status" required>
                                 <option value="pending">Pending</option>
                                 <option value="partial">Partial</option>
+                                <option value="paid">Paid</option>
                             </select>
                         </div>
-                        <div class="form-group">
+                        <div class="form-group full-width">
                             <label for="payment-note">Payment Note</label>
-                            <textarea id="payment-note" placeholder="Add payment notes..."></textarea>
+                            <textarea id="payment-note" placeholder="Add payment notes..." rows="3"></textarea>
                         </div>
                     </div>
                 </div> 
 
                 <!-- Action Buttons -->
                 <div class="billing-footer">
-                    <button class="btn-secondary" onclick="saveDraft()">
+                    <button class="btn-secondary" type="button" onclick="saveDraft()">
                         <i class="fas fa-save"></i> Save Draft
                     </button>
-                    <button class="btn-primary" onclick="generateInvoice()">
+                    <button class="btn-primary" type="button" onclick="generateInvoice()">
                         <i class="fas fa-file-invoice"></i> Generate Invoice
                     </button>
-                    <button class="btn-success" onclick="processPayment()">
+                    <button class="btn-success" type="button" onclick="processPayment()">
                         <i class="fas fa-check"></i> Process Payment
                     </button>
                 </div>

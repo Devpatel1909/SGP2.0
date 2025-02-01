@@ -1,10 +1,10 @@
-/* Import Google Fonts */
-@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
+/* Remove duplicate font import and keep the Montserrat import consistent with other files */
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap');
 
 /* General Styles */
 body {
     margin: 0;
-    font-family: 'Roboto', sans-serif; /* Updated font family */
+    font-family: 'Montserrat', sans-serif;
     background-color: #f4f6fc;
     color: #333;
     display: flex;
@@ -98,16 +98,93 @@ body {
     border-color: #5a4ad1;
     box-shadow: 0 0 5px rgba(90, 74, 209, 0.4);
 }
-/* Inventory Table Styling for Perfect Fit */
+
+/* Header Actions */
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.header-actions i {
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: #5a4ad1;
+    transition: 0.3s;
+}
+
+.header-actions i:hover {
+    color: #7a6eda;
+}
+
+/* Profile Section Styles */
+.profile {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background-color: #f4f6fc;
+    padding: 10px;
+    border-radius: 10px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    font-family: 'Montserrat', sans-serif; /* Updated to use Montserrat */
+}
+
+.profile #auth-btn {
+    background-color: #5a4ad1;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    padding: 8px 12px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    transition: background-color 0.3s, transform 0.2s;
+    font-family: 'Montserrat', sans-serif; /* Added font-family */
+}
+
+.profile #auth-btn:hover {
+    background-color: #ffffff;
+    color: #5a4ad1;
+    transform: scale(1.05);
+}
+
+.profile #username {
+    font-size: 1rem;
+    color: #5a4ad1;
+    font-weight: 600;
+    font-family: 'Montserrat', sans-serif; /* Added font-family */
+}
+
+
+/* Search Bar */
+.search-bar {
+    width: 60%;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    transition: 0.3s;
+    font-size: 1rem;
+    font-family: 'Roboto', sans-serif;
+}
+
+.search-bar:focus {
+    outline: none;
+    border-color: #5a4ad1;
+    box-shadow: 0 0 5px rgba(90, 74, 209, 0.4);
+}
+
+/* Inventory Table Styling */
 .inventory-table {
-    width: 100%; /* Take full available width */
-    max-width: 100%; /* Restrict overflow */
+    width: 100%;
+    max-width: 100%;
     border-collapse: collapse;
     background-color: #ffffff;
     margin-top: 20px;
     border-radius: 10px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     overflow: hidden;
+    font-family: 'Roboto', sans-serif;
 }
 
 .inventory-table thead th {
@@ -129,17 +206,64 @@ body {
     background-color: #f1f5ff;
 }
 
-/* Responsive Scroll for Overflow Handling */
-.inventory-table-wrapper {
-    max-width: 100%;
-    overflow-x: auto; /* Handle horizontal overflow gracefully */
+/* Header Actions */
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 15px;
 }
 
-.inventory-table-wrapper table {
-    width: 100%; /* Ensure table stays fluid */
+.header-actions i {
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: #5a4ad1;
+    transition: 0.3s;
 }
 
-/* Responsive Adjustments */
+.header-actions i:hover {
+    color: #7a6eda;
+}
+
+/* Profile Section */
+.profile {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background-color: #f4f6fc;
+    padding: 10px;
+    border-radius: 10px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    font-family: 'Roboto', sans-serif;
+}
+
+.profile #auth-btn {
+    background-color: #5a4ad1;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    padding: 8px 12px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    transition: background-color 0.3s, transform 0.2s;
+    font-family: 'Roboto', sans-serif;
+}
+
+.profile #auth-btn:hover {
+    background-color: #ffffff;
+    color: #5a4ad1;
+    transform: scale(1.05);
+}
+
+.profile #username {
+    font-size: 1rem;
+    color: #5a4ad1;
+    font-weight: 600;
+    font-family: 'Roboto', sans-serif;
+}
+
+/* Responsive Design */
 @media (max-width: 768px) {
     .inventory-table thead {
         display: none;
@@ -167,78 +291,7 @@ body {
         display: block;
         margin-bottom: 10px;
     }
-}
 
-/* Header Actions */
-.header-actions {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-}
-
-.header-actions i {
-    font-size: 1.5rem;
-    cursor: pointer;
-    color: #5a4ad1;
-    transition: 0.3s;
-}
-
-.header-actions i:hover {
-    color: #7a6eda;
-}
-
-/* Profile Section Styles */
-/* Product Section */
-.profile {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    background-color: #f4f6fc; /* Light background for contrast */
-    padding: 10px;
-    border-radius: 10px; /* Rounded corners */
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Subtle shadow */
-    font-family: 'Roboto', sans-serif; /* Apply modern font */
-}
-
-.profile #auth-btn {
-    background-color: #5a4ad1; /* Dark background */
-    color: #fff; /* White text */
-    border: none;
-    border-radius: 5px; /* Slightly rounded corners */
-    padding: 8px 12px; /* Comfortable padding */
-    cursor: pointer;
-    font-size: 0.9rem; /* Slightly smaller font size */
-    font-weight: bold;
-    text-transform: uppercase; /* Makes the text uppercase */
-    transition: background-color 0.3s, transform 0.2s; /* Smooth hover transition */
-}
-
-.profile #auth-btn:hover {
-    background-color: #ffffff; /* Slightly lighter on hover */
-    color: #5a4ad1; /* Change text color on hover */
-    transform: scale(1.05); /* Subtle hover animation */
-}
-
-.profile #username {
-    font-size: 1rem; /* Font size for username */
-    color: #5a4ad1; /* Color to match the theme */
-    font-weight: 600; /* Slightly bolder text */
-}
-
-/* Responsive adjustments for profile section */
-@media (max-width: 768px) {
-    .profile {
-        flex-direction: column; /* Stack items vertically on smaller screens */
-        align-items: flex-start; /* Align items to the start */
-    }
-
-    .profile #auth-btn {
-        width: 100%; /* Full width button on smaller screens */
-        text-align: center; /* Center text */
-    }
-}
-/* Responsive adjustments */
-@media (max-width: 768px) {
     .sidebar {
         width: 200px;
     }
@@ -257,6 +310,13 @@ body {
     }
 
     .profile {
+        flex-direction: column;
+        align-items: flex-start;
         gap: 5px;
+    }
+
+    .profile #auth-btn {
+        width: 100%;
+        text-align: center;
     }
 }
