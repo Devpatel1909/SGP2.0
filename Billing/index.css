@@ -1,10 +1,12 @@
-/* Import Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
+
+/* General Styles */
 @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
 
 /* General Styles */
 body {
     margin: 0;
-    font-family: 'Roboto', sans-serif; /* Updated font family */
+    font-family: 'Montserrat', sans-serif;
     background-color: #f4f6fc;
     color: #333;
     display: flex;
@@ -98,42 +100,26 @@ body {
     border-color: #5a4ad1;
     box-shadow: 0 0 5px rgba(90, 74, 209, 0.4);
 }
-.billing-table {
-    width: 100%;
-    border-collapse: collapse;
-    background-color: #ffffff;
-    margin-top: 20px;
-    border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+
+/* Header Actions */
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 15px;
 }
 
-.billing-table thead th {
-    background-color: #5a4ad1;
-    color: #ffffff;
-    padding: 15px;
-    font-weight: bold;
-    text-align: center;
-    border-bottom: 2px solid #e0e0e0;
+.header-actions i {
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: #5a4ad1;
+    transition: 0.3s;
 }
 
-.billing-table tbody td {
-    padding: 12px;
-    text-align: center;
-    border-bottom: 1px solid #e0e0e0;
+.header-actions i:hover {
+    color: #7a6eda;
 }
 
-.billing-table tbody tr:hover {
-    background-color: #f1f5ff;
-}
-
-tfoot tr {
-    background-color: #f9f9f9; /* Distinguish the footer row */
-}
-
-tfoot td {
-    text-align: center;
-    padding: 10px;
-}
+/* Profile Section Styles */
 .profile {
     display: flex;
     align-items: center;
@@ -168,21 +154,225 @@ tfoot td {
     font-size: 1rem; /* Font size for username */
     color: #5a4ad1; /* Color to match the theme */
     font-weight: 600; /* Slightly bolder text */
-}   
-/* Header Actions */
-.header-actions {
+}
+
+/* Responsive adjustments for profile section */
+@media (max-width: 768px) {
+    .profile {
+        flex-direction: column; /* Stack items vertically on smaller screens */
+        align-items: flex-start; /* Align items to the start */
+    }
+
+    .profile #auth-btn {
+        width: 100%; /* Full width button on smaller screens */
+        text-align: center; /* Center text */
+    }
+}
+
+/* Billing Container Styles */
+.billing-container {
+    background: #ffffff;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    margin-top: 20px;
+}
+
+.billing-header {
+    background: linear-gradient(135deg, #5a4ad1, #4038a8);
+    color: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 20px;
     display: flex;
+    justify-content: space-between;
     align-items: center;
-    gap: 15px;
 }
 
-.header-actions i {
-    font-size: 1.5rem;
-    cursor: pointer;
+.billing-header input {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #fff;
+    padding: 8px;
+    border-radius: 5px;
+}
+
+/* Billing Details Styles */
+.billing-details {
+    background: #ffffff;
+    border-radius: 10px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+    overflow: hidden;
+}
+
+.billing-details table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.billing-details th {
+    background: #5a4ad1;
+    color: #fff;
+    padding: 12px;
+    text-align: left;
+}
+
+.billing-details td {
+    padding: 12px;
+    border-bottom: 1px solid #eee;
+}
+
+.billing-details input,
+.billing-details select {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    transition: 0.3s ease;
+}
+
+.billing-details input:focus,
+.billing-details select:focus {
+    border-color: #5a4ad1;
+    outline: none;
+    box-shadow: 0 0 5px rgba(90, 74, 209, 0.4);
+}
+
+/* Billing Items Table */
+/* Billing Items Table */
+.billing-items table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+    background: #ffffff;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.billing-items th {
+    background: #5a4ad1;
+    color: #fff;
+    padding: 12px;
+    text-align: left;
+}
+
+.billing-items td {
+    padding: 12px;
+    border-bottom: 1px solid #eee;
+    text-align: center; /* Center align the content in table cells */
+}
+
+.billing-items input {
+    width: 90%; /* Adjust width for better alignment */
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    transition: 0.3s ease;
+    margin: 0 auto; /* Center the input fields */
+    display: block; /* Make inputs block elements for centering */
+}
+
+.billing-items .item-total {
+    font-weight: bold; /* Make total amount bold */
+}
+
+/* Billing Totals */
+.billing-totals table {
+    width: 50%;
+    margin-left: auto;
+    margin-right: auto; /* Center the totals table */
+    background: #ffffff;
+    border-radius: 10px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+}
+
+.billing-totals th,
+.billing-totals td {
+    padding: 12px;
+    border-bottom: 1px solid #eee;
+    text-align: right; /* Align totals to the right */
+}
+
+.billing-totals th {
     color: #5a4ad1;
-    transition: 0.3s;
+    font-weight: bold;
 }
 
-.header-actions i:hover {
-    color: #7a6eda;
+/* Billing Totals */
+.billing-totals table {
+    width: 50%;
+    margin-left: auto;
+    background: #ffffff;
+    border-radius: 10px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+}
+
+.billing-totals th,
+.billing-totals td {
+    padding: 12px;
+    border-bottom: 1px solid #eee;
+}
+
+.billing-totals th {
+    color: #5a4ad1;
+    font-weight: bold;
+}
+
+/* Footer Buttons */
+.billing-footer {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-top: 20px;
+}
+
+.billing-footer button {
+    background: #5a4ad1;
+    color: #fff;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: 0.3s ease;
+    font-weight: 500;
+}
+
+.billing-footer button:hover {
+    background: #4038a8;
+    transform: translateY(-2px);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .sidebar {
+        width: 0;
+        padding: 0;
+        position: fixed;
+        z-index: 1000;
+    }
+
+    .main-content {
+        margin-left: 0;
+    }
+
+    .billing-totals table {
+        width: 100%;
+    }
+
+    .billing-header {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .billing-footer {
+        flex-direction: column;
+    }
+
+    .billing-footer button {
+        width: 100%;
+    }
 }
