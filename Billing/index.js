@@ -123,7 +123,7 @@
                     suggestionDiv.innerHTML = `
                         <div>${highlightedName}</div>
                         <div style="font-size: 0.8em; color: #666;">
-                            ID: ${product.id} - Price: $${product.price.toFixed(2)}
+                            ID: ${product.id} - Price: ₹${product.price.toFixed(2)}
                         </div>
                     `;
                     
@@ -211,7 +211,7 @@
             const discount = parseFloat(row.querySelector('.item-discount').value) || 0;
             
             const total = price * quantity * (1 - discount / 100);
-            row.querySelector('.item-total').textContent = `$${total.toFixed(2)}`;
+            row.querySelector('.item-total').textContent = `₹${total.toFixed(2)}`;
             
             calculateBillTotals();
         }
@@ -219,7 +219,7 @@
         function calculateBillTotals() {
             let subtotal = 0;
             document.querySelectorAll('#bill-items tr').forEach(row => {
-                subtotal += parseFloat(row.querySelector('.item-total').textContent.replace('$', '')) || 0;
+                subtotal += parseFloat(row.querySelector('.item-total').textContent.replace('₹', '')) || 0;
             });
             
             const tax = subtotal * 0.10; // 10% tax
@@ -233,10 +233,10 @@
             
             const grandTotal = subtotal + tax;
             
-            document.getElementById('subtotal').textContent = `$${subtotal.toFixed(2)}`;
-            document.getElementById('tax').textContent = `$${tax.toFixed(2)}`;
-            document.getElementById('total-discount').textContent = `$${discount.toFixed(2)}`;
-            document.getElementById('grand-total').textContent = `$${grandTotal.toFixed(2)}`;
+            document.getElementById('subtotal').textContent = `₹${subtotal.toFixed(2)}`;
+            document.getElementById('tax').textContent = `₹${tax.toFixed(2)}`;
+            document.getElementById('total-discount').textContent = `₹${discount.toFixed(2)}`;
+            document.getElementById('grand-total').textContent = `₹${grandTotal.toFixed(2)}`;
         }
 
         function addNewRow() {
@@ -424,12 +424,12 @@
                     price: parseFloat(row.querySelector('.item-price').value),
                     quantity: parseInt(row.querySelector('.item-quantity').value),
                     discount: parseFloat(row.querySelector('.item-discount').value),
-                    total: parseFloat(row.querySelector('.item-total').textContent.replace('$', ''))
+                    total: parseFloat(row.querySelector('.item-total').textContent.replace('₹', ''))
                 })).filter(item => item.productId && item.name), // Filter out empty rows
-                subtotal: parseFloat(document.getElementById('subtotal').textContent.replace('$', '')),
-                tax: parseFloat(document.getElementById('tax').textContent.replace('$', '')),
-                discount: parseFloat(document.getElementById('total-discount').textContent.replace('$', '')),
-                grandTotal: parseFloat(document.getElementById('grand-total').textContent.replace('$', '')),
+                subtotal: parseFloat(document.getElementById('subtotal').textContent.replace('₹', '')),
+                tax: parseFloat(document.getElementById('tax').textContent.replace('₹', '')),
+                discount: parseFloat(document.getElementById('total-discount').textContent.replace('₹', '')),
+                grandTotal: parseFloat(document.getElementById('grand-total').textContent.replace('₹', '')),
                 payment: {
                     method: document.getElementById('payment-method').value,
                     status: document.getElementById('payment-status').value,

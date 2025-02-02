@@ -357,27 +357,52 @@ body {
 }
 
 /* Autocomplete Styles */
+/* Autocomplete Styles */
 .autocomplete-suggestions {
-    border: 1px solid #ccc;
-    background-color: white;
     position: absolute;
     z-index: 1000;
-    max-height: 150px;
+    background-color: #ffffff;
+    border: 1px solid #ddd;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    max-height: 200px;
     overflow-y: auto;
-    width: 100%;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    width: 100%; /* Matches the input width */
     border-radius: 5px;
+    margin-top: 5px; /* Adds space below the input */
 }
 
 .autocomplete-suggestion {
     padding: 10px;
     cursor: pointer;
+    font-size: 14px;
+    color: #333;
 }
 
 .autocomplete-suggestion:hover {
-    background-color: #f0f0f0;
+    background-color: #f4f6fc;
+    color: #5a4ad1;
 }
 
-.selected {
-    background-color: #e0e0e0; /* Highlight color for selected suggestion */
+.autocomplete-suggestion.selected {
+    background-color: #e8ebfc; /* Highlight for keyboard navigation */
+}
+
+/* Container adjustment for table row positioning */
+.table-container {
+    position: relative;
+}
+
+/* Input field adjustments for better alignment */
+.product-name {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    transition: 0.3s ease;
+}
+
+.product-name:focus {
+    border-color: #5a4ad1;
+    outline: none;
+    box-shadow: 0 0 5px rgba(90, 74, 209, 0.4);
 }
