@@ -32,10 +32,8 @@
                 <h2>Billing</h2>
                 <div id="message" class="message" role="alert"></div>
                 <div class="header-actions">
-                    <div class="notification-icons">
-                        <i class="fas fa-bell"></i>
-                        <i class="fas fa-flag"></i>
-                    </div>
+                    <i class="fa-solid fa-bell"></i>
+                    <i class="fa-solid fa-flag"></i>
                     <div class="profile">
                         <span id="username">Guest</span>
                         <button id="auth-btn">Login</button>
@@ -85,8 +83,8 @@
                         </div>
                         <div class="form-group full-width">
                             <label for="customer-address">Address</label>
-                            <textarea id="customer-address" placeholder="Enter address" rows="3"></textarea>
                         </div>
+                        <textarea id="customer-address" placeholder="Enter address" rows="3"></textarea>
                     </div>
                 </div>
 
@@ -94,16 +92,13 @@
                 <div class="billing-items">
                     <div class="table-header">
                         <h3>Bill Items</h3>
-                        <button class="add-item-btn" type="button">
-                            <i class="fas fa-plus"></i> Add Item
-                        </button>
                     </div>
                     <div class="table-container">
                         <table>
                             <thead>
                                 <tr>
-                                    <th>Product ID</th>
                                     <th>Product Name</th>
+                                    <th>Product ID</th>
                                     <th>Price (MRP)</th>
                                     <th>Quantity</th>
                                     <th>Discount</th>
@@ -113,14 +108,11 @@
                             </thead>
                             <tbody id="bill-items">
                                 <tr>
-                                    <td><input type="number" class="product-id" placeholder="Enter ID" min="1"></td>
                                     <td>
-                                        <select class="product-select" required>
-                                            <option value="">Select Product</option>
-                                            <option value="1">Product A</option>
-                                            <option value="2">Product B</option>
-                                        </select>
+                                        <input type="text" class="product-name" placeholder="Enter name" autocomplete="off">
+                                        <div class="autocomplete-suggestions" style="display: none;"></div>
                                     </td>
+                                    <td><input type="text" class="product-id" placeholder="Enter ID" min="1"></td>
                                     <td><input type="number" class="item-price" value="0.00" step="0.01" readonly></td>
                                     <td><input type="number" class="item-quantity" value="1" min="1"></td>
                                     <td><input type="number" class="item-discount" value="0" min="0" max="100"></td>
@@ -202,6 +194,6 @@
         </main>
     </div>
 
-    <script src="script.js"></script>
+    <script src="index.js"></script>
 </body>
 </html>

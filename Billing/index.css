@@ -1,6 +1,5 @@
-
-/* General Styles */
-@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
+/* Remove duplicate font import and keep the Montserrat import consistent with other files */
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap');
 
 /* General Styles */
 body {
@@ -84,22 +83,6 @@ body {
     margin-bottom: 20px;
 }
 
-/* Search Bar */
-.search-bar {
-    width: 60%;
-    padding: 12px;
-    border: 1px solid #ddd;
-    border-radius: 10px;
-    transition: 0.3s;
-    font-size: 1rem;
-}
-
-.search-bar:focus {
-    outline: none;
-    border-color: #5a4ad1;
-    box-shadow: 0 0 5px rgba(90, 74, 209, 0.4);
-}
-
 /* Header Actions */
 .header-actions {
     display: flex;
@@ -127,7 +110,6 @@ body {
     padding: 10px;
     border-radius: 10px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    font-family: 'Montserrat', sans-serif; /* Updated to use Montserrat */
 }
 
 .profile #auth-btn {
@@ -141,7 +123,6 @@ body {
     font-weight: bold;
     text-transform: uppercase;
     transition: background-color 0.3s, transform 0.2s;
-    font-family: 'Montserrat', sans-serif; /* Added font-family */
 }
 
 .profile #auth-btn:hover {
@@ -154,9 +135,7 @@ body {
     font-size: 1rem;
     color: #5a4ad1;
     font-weight: 600;
-    font-family: 'Montserrat', sans-serif; /* Added font-family */
 }
-
 
 /* Billing Container Styles */
 .billing-container {
@@ -227,7 +206,7 @@ body {
     outline: none;
     box-shadow: 0 0 5px rgba(90, 74, 209, 0.4);
 }
-/* Billing Items Table */
+
 /* Billing Items Table */
 .billing-items table {
     width: 100%;
@@ -265,9 +244,7 @@ body {
 .billing-items .item-total {
     font-weight: bold; /* Make total amount bold */
 }
-.table-container{
-    width: 1005;
-}
+
 /* Billing Totals */
 .billing-totals table {
     width: 50%;
@@ -284,27 +261,6 @@ body {
     padding: 12px;
     border-bottom: 1px solid #eee;
     text-align: right; /* Align totals to the right */
-}
-
-.billing-totals th {
-    color: #5a4ad1;
-    font-weight: bold;
-}
-
-/* Billing Totals */
-.billing-totals table {
-    width: 50%;
-    margin-left: auto;
-    background: #ffffff;
-    border-radius: 10px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    margin-bottom: 20px;
-}
-
-.billing-totals th,
-.billing-totals td {
-    padding: 12px;
-    border-bottom: 1px solid #eee;
 }
 
 .billing-totals th {
@@ -372,6 +328,7 @@ body {
     flex-direction: column; /* Stacks the info groups vertically */
     gap: 4px; /* Adds space between each info group */  
 }
+
 .info-group {
     display: flex;
     align-items: center; /* Aligns label and input horizontally */
@@ -397,4 +354,30 @@ body {
 
 .info-group input[type="text"] {
     width: 200px; /* Sets a specific width for text inputs */
+}
+
+/* Autocomplete Styles */
+.autocomplete-suggestions {
+    border: 1px solid #ccc;
+    background-color: white;
+    position: absolute;
+    z-index: 1000;
+    max-height: 150px;
+    overflow-y: auto;
+    width: 100%;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    border-radius: 5px;
+}
+
+.autocomplete-suggestion {
+    padding: 10px;
+    cursor: pointer;
+}
+
+.autocomplete-suggestion:hover {
+    background-color: #f0f0f0;
+}
+
+.selected {
+    background-color: #e0e0e0; /* Highlight color for selected suggestion */
 }
