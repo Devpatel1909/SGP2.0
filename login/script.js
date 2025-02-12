@@ -32,7 +32,7 @@ signupForm.addEventListener("submit", async (e) => {
         alert("Password must be at least 8 characters long.");
         return;
     }
-z
+
     try {
         const response = await fetch("http://localhost:3000/api/signup", {
             method: "POST",
@@ -43,10 +43,10 @@ z
         const data = await response.json();
         if (response.ok) {
             // Sign up successful
-            alert("Sign up successful! Redirecting to your inventory...");
+            alert("Sign up successful!...");
             localStorage.setItem("token", data.token); // Optionally store a token
             // Redirect to inventory page
-            window.location.href = "../inventory/index.html";
+
         } else {
             // Handle signup errors from the server
             alert(`Error: ${data.message}`);
