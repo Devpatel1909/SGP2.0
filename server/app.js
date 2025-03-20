@@ -5,6 +5,7 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import cors from "cors";
 import User from "../models/User.js";
+import Billing from "../models/Billing.js";
 
 dotenv.config();
 
@@ -211,7 +212,64 @@ app.delete("/api/items/:id", verifyToken, async (req, res) => {
   }
 });
 
+app.post('/api/billing', async (req, res) => {  
+  try {  
+      const billing = new Billing(req.body);  
+      await billing.save();  
+      res.status(201).send(billing);  
+  } catch (error) {  
+      res.status(400).send(error);  
+  }  
+});  
 
+// Get All Billing Records  
+app.get('/api/billing', async (req, res) => {  
+  try {  
+      const billings = await Billing.find().populate('user').populate('items.item');  
+      res.status(200).send(billings);  
+  } catch (error) {  
+      res.status(500).send(error);  
+  }  
+});  
+
+// Get Billing Record by ID  
+app.get('/api/billing/:id', async (req, res) => {  
+  try {  
+      const billing = await Billing.findById(req.params.id).populate('user').populate('items.item');  
+      if (!billing) {  
+          return res.status(404).send();  
+      }  
+      res.status(200).send(billing);  
+  } catch (error) {  
+      res.status(500).send(error);  
+  }  
+});  
+
+// Update Billing Record by ID  
+app.patch('/api/billing/:id', async (req, res) => {  
+  try {  
+      const billing = await Billing.findByIdAndUpdate(req.params.id, req.body, { new: true });  
+      if (!billing) {  
+          return res.status(404).send();  
+      }  
+      res.status(200).send(billing);  
+  } catch (error) {  
+      res.status(400).send(error);  
+  }  
+});  
+
+// Delete Billing Record by ID  
+app.delete('/api/billing/:id', async (req, res) => {  
+  try {  
+      const billing = await Billing.findByIdAndDelete(req.params.id);  
+      if (!billing) {  
+          return res.status(404).send();  
+      }  
+      res.status(200).send(billing);  
+  } catch (error) {  
+      res.status(500).send(error);  
+  }  
+});  
 // Undefined Routes Handler
 app.use((req, res) => {
   res.status(404).json({ message: "Route not found" });
