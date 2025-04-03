@@ -212,68 +212,43 @@ app.delete("/api/items/:id", verifyToken, async (req, res) => {
   }
 });
 
-app.post('/api/billing', async (req, res) => {  
-  try {  
-      const billing = new Billing(req.body);  
-      await billing.save();  
-      res.status(201).send(billing);  
-  } catch (error) {  
-      res.status(400).send(error);  
-  }  
-});  
+  
+// Endpoint to get suggestions based on item names
+app.get('/api/items/suggestions', async (req, res) => {
+  const query = req.query.query || '';
 
-// Get All Billing Records  
-app.get('/api/billing', async (req, res) => {  
-  try {  
-      const billings = await Billing.find().populate('user').populate('items.item');  
-      res.status(200).send(billings);  
-  } catch (error) {  
-      res.status(500).send(error);  
-  }  
-});  
+  try {
+    // Find users with items that match the query
+    const users = await User.find({
+      'items.name': { $regex: query, $options: 'i' }
+    });
 
-// Get Billing Record by ID  
-app.get('/api/billing/:id', async (req, res) => {  
-  try {  
-      const billing = await Billing.findById(req.params.id).populate('user').populate('items.item');  
-      if (!billing) {  
-          return res.status(404).send();  
-      }  
-      res.status(200).send(billing);  
-  } catch (error) {  
-      res.status(500).send(error);  
-  }  
-});  
+    const suggestions = [];
 
-// Update Billing Record by ID  
-app.patch('/api/billing/:id', async (req, res) => {  
-  try {  
-      const billing = await Billing.findByIdAndUpdate(req.params.id, req.body, { new: true });  
-      if (!billing) {  
-          return res.status(404).send();  
-      }  
-      res.status(200).send(billing);  
-  } catch (error) {  
-      res.status(400).send(error);  
-  }  
-});  
+    // Extract matching items from each user
+    users.forEach(user => {
+      user.items.forEach(item => {
+        if (item.name.toLowerCase().includes(query.toLowerCase())) {
+          suggestions.push({
+            name: item.name,
+            id: item.id,
+            price: item.price
+          });
+        }
+      });
+    });
 
-// Delete Billing Record by ID  
-app.delete('/api/billing/:id', async (req, res) => {  
-  try {  
-      const billing = await Billing.findByIdAndDelete(req.params.id);  
-      if (!billing) {  
-          return res.status(404).send();  
-      }  
-      res.status(200).send(billing);  
-  } catch (error) {  
-      res.status(500).send(error);  
-  }  
-});  
-// Undefined Routes Handler
-app.use((req, res) => {
-  res.status(404).json({ message: "Route not found" });
+    // Remove duplicate suggestions based on item name
+    const uniqueSuggestions = Array.from(new Set(suggestions.map(item => item.name)))
+      .map(name => suggestions.find(item => item.name === name));
+
+    res.json(uniqueSuggestions);
+  } catch (error) {
+    console.error('Error fetching suggestions:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
 });
+
 
 // Start Server
 app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));

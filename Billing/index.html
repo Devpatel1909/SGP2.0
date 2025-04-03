@@ -26,7 +26,6 @@
             </ul>
         </aside>
 
-        <!-- Main Content -->
         <main class="main-content">
             <header class="top-header">
                 <h2>Billing</h2>
@@ -38,6 +37,8 @@
                         <span id="username">Guest</span>
                         <button id="auth-btn">Login</button>
                     </div>
+                    
+                    
                 </div>
             </header>
 
@@ -177,16 +178,9 @@
                         </div>
                     </div>
                 </div> 
-
                 <!-- Action Buttons -->
                 <div class="billing-footer">
-                    <button class="btn-secondary" type="button" onclick="saveDraft()">
-                        <i class="fas fa-save"></i> Save Draft
-                    </button>
-                    <button class="btn-primary" type="button" onclick="generateInvoice()">
-                        <i class="fas fa-file-invoice"></i> Generate Invoice
-                    </button>
-                    <button class="btn-success" type="button" onclick="processPayment()">
+                    <button class="btn-success" type="button" id="process-payment-btn">
                         <i class="fas fa-check"></i> Process Payment
                     </button>
                 </div>
