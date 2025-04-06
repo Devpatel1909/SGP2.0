@@ -4,8 +4,8 @@ import dotenv from "dotenv";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import cors from "cors";
-import User from "../models/User.js";
-import Billing from "../models/Billing.js";
+import User from './models/User.js'; // Use import
+import Billing from './models/Billing.js'; // Use import
 
 dotenv.config();
 
@@ -248,7 +248,66 @@ app.get('/api/items/suggestions', async (req, res) => {
     res.status(500).json({ message: 'Internal server error' });
   }
 });
+app.post('/api/billing', async (req, res) => {
+  try {
+    // Clone the request body and add a unique bill_id
+    const billingData = new Billing({
+      ...req.body,
+      bill_id: 'BILL-' + Date.now() + '-' + Math.floor(Math.random() * 1000)
+    });
+    
+    await billingData.save();
+    res.status(201).json({ message: 'Billing data saved successfully!', billingData });
+  } catch (error) {
+    console.error('Error saving billing data:', error.message);
+    console.error('Full error:', error);
+    res.status(500).json({ message: 'Failed to save billing data.', error: error.message });
+  }
+});
+app.post('/api/billing', async (req, res) => {
+  const {
+      customerName,
+      customerPhone,  
+      customerEmail,
+      customerAddress,
+      invoiceDate,
+      invoiceNo,
+      paymentMethod,
+      paymentStatus,
+      paymentNote,
+      items
+  } = req.body;
 
+  // Basic validation
+  if (!customerName || !customerPhone || !invoiceNo || !paymentMethod || !paymentStatus || !items || items.length === 0) {
+      return res.status(400).json({ message: 'Please fill in all required fields and add at least one product.' });
+  }
+
+  try {
+      // Generate a unique bill_id
+      const bill_id = 'BILL-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
+
+const billingData = new Billing({
+    customerName,
+    customerPhone,
+    customerEmail,
+    customerAddress,
+    invoiceDate,
+    invoiceNo,
+    paymentMethod,
+    paymentStatus,
+    paymentNote,
+    items,
+    bill_id // Set the generated bill_id here
+});
+
+      await billingData.save();
+      res.status(201).json({ message: 'Billing data saved successfully!', billingData });
+  } catch (error) {
+      console.error('Error saving billing data:', error); // Log the error
+      res.status(500).json({ message: 'Failed to save billing data.', error: error.message });
+  }
+});
 
 // Start Server
 app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));

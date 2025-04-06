@@ -71,7 +71,7 @@ body {
 .main-content {
     flex: 1;
     padding: 20px;
-    overflow-y: auto;
+    overflow-y: auto; /* Allow vertical scrolling */
     background: #ffffff;
     border-radius: 10px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
@@ -145,6 +145,7 @@ body {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     padding: 20px;
     margin-top: 20px;
+    overflow: visible; /* Allow dropdown visibility */
 }
 
 .billing-header {
@@ -307,7 +308,6 @@ textarea {
     border-collapse: collapse;
     background: #ffffff;
     border-radius: 10px;
-    overflow: hidden;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
@@ -344,27 +344,6 @@ textarea {
     border-color: #5a4ad1;
     outline: none;
     box-shadow: 0 0 0 2px rgba(90, 74, 209, 0.2);
-}
-
-.billing-items .item-total {
-    font-weight: bold;
-    color: #5a4ad1;
-}
-
-.delete-row {
-    background: none;
-    border: none;
-    color: #ff5252;
-    cursor: pointer;
-    font-size: 1rem;
-    transition: background-color 0.2s, transform 0.2s;
-    padding: 5px 10px;
-    border-radius: 4px;
-}
-
-.delete-row:hover {
-    background-color: #ffebee;
-    transform: scale(1.1);
 }
 
 /* Billing Totals */
@@ -504,54 +483,81 @@ textarea {
 .info-group input[type="text"] {
     width: 200px;
 }
+.bill-container {
+    position: relative;
+    width: 100%; /* Ensures everything is inside the same container */
+}
 
-/* Autocomplete Styles */
+.bill-table {
+    width: 100%; /* Ensure table takes full width */
+    border-collapse: collapse;
+}
+/* Styles for the suggestions container */
 .autocomplete-suggestions {
-    position: absolute; /* Position relative to the nearest positioned ancestor */
-    z-index: 1000; /* High z-index to ensure it appears above other elements */
-    background-color: #ffffff; /* White background for better contrast */
-    border: 1px solid #ddd; /* Light border for definition */
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); /* Subtle shadow for depth */
-    max-height: 200px; /* Limit height to prevent overflow */
-    overflow-y: auto; /* Enable scrolling if suggestions exceed max height */
-    width: calc(100% - 20px); /* Full width minus padding */
-    border-radius: 8px; /* Rounded corners */
-    margin-top: 5px; /* Space between input and suggestions */
-    left: 10px; /* Align with input field */
-    display: none; /* Initially hidden */
+    position: absolute;
+    border: 1px solid #ddd;
+    border-top: none;
+    background: white;
+    max-height: 300px;
+    overflow-y: auto;
+    z-index: 1000;
+    width: 100%;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
 }
 
-/* Individual suggestion item styles */
-.autocomplete-suggestion {
-    padding: 12px 15px; /* Padding for clickable area */
-    cursor: pointer; /* Pointer cursor for interactivity */
-    font-size: 0.9rem; /* Font size for readability */
-    color: #333; /* Dark text color for contrast */
-    border-bottom: 1px solid #eee; /* Light border between suggestions */
-    transition: background-color 0.2s ease; /* Smooth background transition */
+/* Style for each suggestion item */
+.suggestion-item {
+    padding: 10px;
+    cursor: pointer;
+    border-bottom: 1px solid #f0f0f0;
+    transition: background 0.2s ease-in-out;
 }
 
-/* Last suggestion item without bottom border */
-.autocomplete-suggestion:last-child {
-    border-bottom: none; /* Remove border for the last item */
+/* Highlight the selected suggestion */
+.suggestion-item.selected {
+    background-color: #007bff; /* Blue background */
+    color: white; /* White text for visibility */
+    font-weight: bold;
+    border-left: 4px solid #0056b3; /* Left border for emphasis */
 }
 
-/* Hover effect for suggestions */
-.autocomplete-suggestion:hover {
-    background-color: #f4f6fc; /* Light background on hover */
-    color: #5a4ad1; /* Change text color on hover */
+/* Additional styles for better visibility */
+.suggestion-name {
+    font-weight: bold;
 }
 
-/* Selected suggestion styling */
-.autocomplete-suggestion.selected {
-    background-color: #e8ebfc; /* Highlight selected suggestion */
-    color: #5a4ad1; /* Change text color for selected item */
+.suggestion-details {
+    display: flex;
+    font-size: 0.9em;
+    color: #444;
+    margin-top: 3px;
 }
+
+.suggestion-details span {
+    margin-right: 10px;
+}
+
+.suggestion-price {
+    color: #2a6496;
+}
+
+/* Ensure the highlighted item is always visible */
+.suggestion-item.selected {
+    scroll-margin-top: 5px;
+}
+
+
+/* Additional styling for keyboard navigation */
+.keyboard-navigation {
+    outline: 2px solid #007bff; /* Blue outline for focused suggestion */
+    background-color: #e9ecef; /* Light background for focused suggestion */
+}
+
 /* Container adjustment for table row positioning */
 .table-container {
     position: relative;
     margin-bottom: 20px;
-    overflow-x: auto;
+    overflow-x: visible !important; /* Allow dropdown visibility */
 }
 
 /* Input field adjustments for better alignment */
@@ -562,12 +568,14 @@ textarea {
     border-radius: 6px;
     transition: 0.3s ease;
     position: relative;
+    z-index: 10;
 }
 
 .product-name:focus {
     border-color: #5a4ad1;
     outline: none;
     box-shadow: 0 0 5px rgba(90, 74, 209, 0.4);
+    z-index: 1001;
 }
 
 /* Message styling */
