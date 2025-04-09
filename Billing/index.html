@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Billing | eBazar</title>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="index.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
 </head>
@@ -19,7 +19,7 @@
                 <li><a href="../dashboard/index.html"><i class="fas fa-home"></i><span>Dashboard</span></a></li>
                 <li><a href="../product/index.html"><i class="fas fa-box"></i><span>Products</span></a></li>
                 <li class="active"><a href="../billing/index.html"><i class="fas fa-file-invoice"></i><span>Billing</span></a></li>
-                <li><a href="../customers/index.html"><i class="fas fa-users"></i><span>Customers</span></a></li>
+                <li><a href="../customer/customer.html"><i class="fas fa-users"></i><span>Customers</span></a></li>
                 <li><a href="../inventory/index.html"><i class="fas fa-warehouse"></i><span>Inventory</span></a></li>
                 <li><a href="../bills/index.html"><i class="fas fa-file-invoice"></i><span>Bills</span></a></li>
                 <li><a href="../settings/index.html"><i class="fas fa-cog"></i><span>Settings</span></a></li>
@@ -31,7 +31,22 @@
                 <h2>Billing</h2>
                 <div id="message" class="message" role="alert"></div>
                 <div class="header-actions">
-                    <i class="fa-solid fa-bell"></i>
+                    <div class="notification-container">
+                        <i class="fa-solid fa-bell" id="notification-bell"></i>
+                        <span class="notification-badge" id="notification-count">0</span>
+                        <div class="notification-dropdown" id="notification-dropdown">
+                            <div class="notification-header">
+                                <h3>Notifications</h3>
+                                <button id="mark-all-read">Mark all as read</button>
+                            </div>
+                            <div class="notification-body" id="notification-list">
+                                <!-- Notifications will be added here -->
+                            </div>
+                            <div class="notification-footer">
+                                <a href="../inventory/index.html">View All</a>
+                            </div>
+                        </div>
+                    </div>
                     <i class="fa-solid fa-flag"></i>
                     <div class="profile">
                         <span id="username">Guest</span>

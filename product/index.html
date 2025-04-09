@@ -12,13 +12,13 @@
         <!-- Sidebar -->
         <aside class="sidebar">
             <div class="sidebar-header">
-                <h2>eBazar</h2>
+                <h2><i class="fas fa-shopping-cart"></i> eMart</h2>
             </div>
             <ul class="menu-list">
                 <li><a href="../dashboard/index.html"><i class="fa-solid fa-house"></i> Dashboard</a></li>
                 <li class="active"><a href="#"><i class="fa-solid fa-box"></i> Products</a></li>
                 <li><a href="../Billing/index.html"><i class="fas fa-file-invoice"></i> Billing</a></li>
-                <li><a href="#"><i class="fas fa-users"></i> Customers</a></li>
+                <li><a href="../customer/customer.html"><i class="fas fa-users"></i> Customers</a></li>
                 <li><a href="../inventory/index.html"><i class="fa-solid fa-warehouse"></i> Inventory</a></li>
                 <li><a href=""><i class="fa-solid fa-file-invoice"></i> Bills</a></li>
                 <li><a href="#"><i class="fa-solid fa-cog"></i> Settings</a></li>
@@ -28,10 +28,9 @@
         <!-- Main Content -->
         <main class="main-content">
             <header class="top-header">
-                <input type="text" class="search-bar" placeholder="Search items...">
+                <h2>Items</h2>
+              
                 <div class="header-actions">
-                    <i class="fa-solid fa-bell"></i>
-                    <i class="fa-solid fa-flag"></i>
                     <div class="profile">
                         <span id="username">Guest</span>
                         <button id="auth-btn">Login</button>
@@ -40,8 +39,7 @@
             </header>
 
             <section class="product-section">
-                <h2>Items</h2>
-                <div id="message" class="message" role="alert"></div>
+               
                 
                 <table id="inventory-table" class="inventory-table">
                     <thead>

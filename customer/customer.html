@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customers | eBazar</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link rel="stylesheet" href="customer.css">
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2><i class="fas fa-shopping-cart"></i> eMart</h2>
+            </div>
+            <ul class="menu-list">
+                <li><a href="../dashboard/index.html"><i class="fa-solid fa-house"></i> Dashboard</a></li>
+                <li><a href="../product/index.html"><i class="fa-solid fa-box"></i> Products</a></li>
+                <li><a href="../Billing/index.html"><i class="fas fa-file-invoice"></i> Billing</a></li>
+                <li class="active"><a href="#"><i class="fas fa-users"></i> Customers</a></li>
+                <li><a href="../inventory/index.html"><i class="fa-solid fa-warehouse"></i> Inventory</a></li>
+                <li><a href="../Billing/index.html"><i class="fa-solid fa-file-invoice"></i> Bills</a></li>
+                <li><a href="#"><i class="fa-solid fa-cog"></i> Settings</a></li>
+            </ul>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="top-header">
+                <h2>Customers</h2>
+                <div id="message" class="message" role="alert"></div>
+                <div class="header-actions">
+                    <div class="notification-container">
+                        <i class="fa-solid fa-bell" id="notification-bell"></i>
+                        <span class="notification-badge" id="notification-count">0</span>
+                        <div class="notification-dropdown" id="notification-dropdown">
+                            <div class="notification-header">
+                                <h3>Notifications</h3>
+                                <button id="mark-all-read">Mark all as read</button>
+                            </div>
+                            <div class="notification-body">
+                                <div id="notification-list"></div>
+                            </div>
+                            <div class="notification-footer">
+                                <a href="#">View all notifications</a>
+                            </div>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-flag"></i>
+                    <div class="profile">
+                        <span id="username">Guest</span>
+                        <button id="auth-btn">Login</button>
+                    </div>
+                </div>
+            </header>
+
+            <section class="customer-section">
+                <!-- Search and Filter Area -->
+                <div class="filters-section">
+                    <div class="search-container">
+                        <i class="fas fa-search search-icon"></i>
+                        <input type="text" id="customer-search" class="search-bar" placeholder="Search customers by name, phone or email...">
+                    </div>
+                    
+                    <div class="filter-item">
+                        <label for="payment-filter">Payment Status</label>
+                        <select id="payment-filter">
+                            <option value="all">All Statuses</option>
+                            <option value="paid">Paid</option>
+                            <option value="pending">Pending</option>
+                            <option value="partial">Partial</option>
+                        </select>
+                    </div>
+                    
+                    <div class="filter-actions">
+                        <button id="apply-filter" class="apply-filter"><i class="fas fa-filter"></i> Apply</button>
+                        <button id="reset-filter" class="reset-filter"><i class="fas fa-undo"></i> Reset</button>
+                    </div>
+                </div>
+                
+                <!-- Customer Stats Cards -->
+                <div class="customer-stats" id="customer-stats">
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="fas fa-users"></i></div>
+                        <div class="stat-info">
+                            <h3 id="total-customers">0</h3>
+                            <p>Total Customers</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="fas fa-shopping-bag"></i></div>
+                        <div class="stat-info">
+                            <h3 id="total-orders">0</h3>
+                            <p>Total Orders</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="fas fa-rupee-sign"></i></div>
+                        <div class="stat-info">
+                            <h3 id="total-revenue">₹0.00</h3>
+                            <p>Total Revenue</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="fas fa-chart-line"></i></div>
+                        <div class="stat-info">
+                            <h3 id="avg-order-value">₹0.00</h3>
+                            <p>Avg. Order Value</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Customers Table -->
+                <div class="table-actions">
+                    <h3>Customer List</h3>
+                    <div class="action-buttons">
+                        <button id="export-customers" class="btn btn-secondary">
+                            <i class="fas fa-download"></i> Export
+                        </button>
+                        <button id="print-customers" class="btn btn-secondary">
+                            <i class="fas fa-print"></i> Print
+                        </button>
+                    </div>
+                </div>
+                
+                <table id="customers-table" class="customers-table">
+                    <thead>
+                        <tr>
+                            <th>Customer ID</th>
+                            <th>Name</th>
+                            <th>Phone</th>
+                            <th>Email</th>
+                            <th>Orders</th>
+                            <th>Total Spent</th>
+                            <th>Last Order</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Dynamic rows will be rendered here -->
+                    </tbody>
+                </table>
+                
+                <!-- Pagination Controls -->
+                <div class="pagination-controls">
+                    <button id="prev-page" class="pagination-btn" disabled>
+                        <i class="fas fa-chevron-left"></i> Previous
+                    </button>
+                    <div id="page-indicators" class="page-indicators">
+                        <span class="current-page">Page <span id="current-page">1</span> of <span id="total-pages">1</span></span>
+                    </div>
+                    <button id="next-page" class="pagination-btn" disabled>
+                        Next <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Customer Detail Modal -->
+    <div id="customer-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Customer Details</h2>
+                <span class="close-modal">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="customer-profile">
+                    <div class="customer-avatar">
+                        <i class="fas fa-user-circle"></i>
+                    </div>
+                    <div class="customer-info">
+                        <h3 id="modal-customer-name">Customer Name</h3>
+                        <p id="modal-customer-id">ID: -</p>
+                        <div class="contact-details">
+                            <p><i class="fas fa-phone"></i> <span id="modal-customer-phone">-</span></p>
+                            <p><i class="fas fa-envelope"></i> <span id="modal-customer-email">-</span></p>
+                            <p><i class="fas fa-map-marker-alt"></i> <span id="modal-customer-address">-</span></p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="customer-analytics">
+                    <div class="analytic-card">
+                        <h4>Total Orders</h4>
+                        <p id="modal-total-orders">0</p>
+                    </div>
+                    <div class="analytic-card">
+                        <h4>Total Spent</h4>
+                        <p id="modal-total-spent">₹0.00</p>
+                    </div>
+                    <div class="analytic-card">
+                        <h4>Avg. Order Value</h4>
+                        <p id="modal-avg-order">₹0.00</p>
+                    </div>
+                    <div class="analytic-card">
+                        <h4>Last Order Date</h4>
+                        <p id="modal-last-order">-</p>
+                    </div>
+                </div>
+                
+                <div class="order-history">
+                    <h3>Order History</h3>
+                    <table id="order-history-table" class="order-history-table">
+                        <thead>
+                            <tr>
+                                <th>Invoice No</th>
+                                <th>Date</th>
+                                <th>Items</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="order-history-body">
+                            <!-- Order history will be populated here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="close-modal-btn" class="btn btn-secondary">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="customer.js" defer></script>
+</body>
+</html>

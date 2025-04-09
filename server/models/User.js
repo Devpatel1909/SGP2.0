@@ -1,24 +1,46 @@
-import mongoose from "mongoose"; // Import mongoose
+import mongoose from 'mongoose';
 
-// Define the schema for an item
 const itemSchema = new mongoose.Schema({
-  id: { type: String, required: true },
-  name: { type: String, required: true },
-  quantity: { type: Number, required: true, min: 0 }, // Ensure quantity is non-negative
-  price: { type: Number, required: true, min: 0 }, // Ensure price is non-negative
-  profit: { type: Number, required: true, min: 0 }, // Ensure profit is non-negative
-  expiry: { type: Date, required: true }, // Add expiry date
+  id: Number,
+  name: String,
+  quantity: Number,
+  price: Number,
+  profit: Number,
+  expiry: Date,
 });
 
-// Define the schema for a user
 const userSchema = new mongoose.Schema({
-  username: { type: String, required: true },
-  email: { type: String, required: true, unique: true },
-  password: { type: String, required: true },
-  items: [itemSchema], // Define items as an array of itemSchema
+  username: {
+    type: String,
+    required: true,
+    trim: true,
+  },
+  email: {
+    type: String,
+    required: true,
+    unique: true,
+    trim: true,
+  },
+  password: {
+    type: String,
+    required: true,
+  },
+  profilePicture: {
+    type: String,
+    default: '',
+  },
+  authProvider: {
+    type: String,
+    enum: ['local', 'google', 'github'],
+    default: 'local'
+  },
+  items: [itemSchema],
+  createdAt: {
+    type: Date,
+    default: Date.now,
+  },
 });
 
-// Create the User model
-const User = mongoose.model("User ", userSchema);
+const User = mongoose.model('User', userSchema);
 
-export default User; // Use export default
+export default User;
