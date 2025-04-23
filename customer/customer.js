@@ -248,15 +248,16 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // Fetch all billing data to extract customers
-    async function fetchBillingData() {
-        const token = checkLogin();
-        try {
-            const response = await fetch(`${BASE_URL}/api/billing`, {
-                headers: { 
-                    "Authorization": `Bearer ${token}`,
-                    "Content-Type": "application/json"
-                },
-            });
+   // Client-side code (problem):
+async function fetchBillingData() {
+    const token = checkLogin();
+    try {
+        const response = await fetch(`${BASE_URL}/api/billing`, {
+            headers: { 
+                "Authorization": `Bearer ${token}`,
+                "Content-Type": "application/json"
+            },
+        });
             if (!response.ok) throw new Error("Failed to fetch billing data");
             
             const billingData = await response.json();

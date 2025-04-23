@@ -64,55 +64,82 @@ const verifyToken = (req, res, next) => {
 };
 
 
+// Add these routes to your server.js file
+
+// Google OAuth callback handler
+// In your Express backend
 app.get('/auth/google/callback', async (req, res) => {
-  const code = req.query.code;
-
+  const { code, state } = req.query;
+  
   if (!code) {
-      return res.status(400).send('Missing authorization code');
+    // Redirect to frontend with error
+    return res.redirect(`http://localhost:5500/login/login.html?error=missing_code`);
   }
-
+  
   try {
-      // Exchange code for tokens
-      const tokenResponse = await axios.post('https://oauth2.googleapis.com/token', null, {
-          params: {
-              code,
-              client_id: GOOGLE_CLIENT_ID,
-              client_secret: GOOGLE_CLIENT_SECRET,
-              redirect_uri: `${req.protocol}://${req.get('host')}/auth/google/callback`,
-              grant_type: 'authorization_code',
-          },
-          headers: {
-              'Content-Type': 'application/x-www-form-urlencoded',
-          },
+    // Exchange the code for tokens with Google
+    const tokenResponse = await axios.post('https://oauth2.googleapis.com/token', {
+      code,
+      client_id: process.env.GOOGLE_CLIENT_ID,
+      client_secret: process.env.GOOGLE_CLIENT_SECRET,
+      redirect_uri: `http://localhost:3000/auth/google/callback`,
+      grant_type: 'authorization_code'
+    });
+
+    const { id_token, access_token } = tokenResponse.data;
+    
+    // Get user info from Google
+    const userInfoResponse = await axios.get('https://www.googleapis.com/oauth2/v3/userinfo', {
+      headers: { Authorization: `Bearer ${access_token}` }
+    });
+    
+    const userData = userInfoResponse.data;
+    
+    // Find or create user in your database
+    let user = await User.findOne({ email: userData.email });
+    
+    if (!user) {
+      const randomPassword = Math.random().toString(36).slice(-10);
+      const hashedPassword = await bcrypt.hash(randomPassword, 10);
+      
+      user = new User({
+        username: userData.name,
+        email: userData.email,
+        password: hashedPassword,
+        profilePicture: userData.picture,
+        authProvider: 'google',
+        items: []
       });
-
-      const { id_token, access_token } = tokenResponse.data;
-
-      // Decode ID token to get user info
-      const userInfo = await axios.get(`https://www.googleapis.com/oauth2/v3/userinfo`, {
-          headers: {
-              Authorization: `Bearer ${access_token}`,
-          },
-      });
-
-      const user = userInfo.data;
-      console.log("Google user:", user);
-
-      // Here: Find or create user in your DB using email
-      // For demo, just generate a token
-      const jwtToken = jwt.sign({ email: user.email, name: user.name }, JWT_SECRET, { expiresIn: '1h' });
-
-      // Option 1: Redirect with token in query (e.g., for frontend to store in localStorage)
-      res.redirect(`/inventory/index.html?token=${jwtToken}`);
-
-      // Option 2: Set cookie and redirect
-      // res.cookie("token", jwtToken, { httpOnly: true }).redirect('/inventory/index.html');
-
+      
+      await user.save();
+    }
+    
+    // Generate JWT token
+    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: "1h" });
+    
+    // IMPORTANT: Redirect back to the frontend with the token
+    res.redirect(`http://localhost:5500/login/login.html?token=${token}&provider=google&state=${state}`);
   } catch (error) {
-      console.error("Error exchanging Google code:", error?.response?.data || error.message);
-      res.status(500).send("Failed to authenticate with Google");
+    console.error('Google auth error:', error);
+    res.redirect(`http://localhost:5500/login/login.html?error=google_auth_failed`);
   }
 });
+
+
+// GitHub OAuth callback handler (similar approach)
+app.get('/auth/github/callback', (req, res) => {
+  const code = req.query.code;
+  const state = req.query.state;
+  
+  if (!code) {
+    return res.redirect('/login/login.html?error=missing_code');
+  }
+  
+  res.redirect(`/login/login.html?code=${code}&state=${state}&provider=github`);
+});
+
+
+
 
 app.get('/auth/google/', (req, res) => {
   const authUrl = googleClient.generateAuthUrl({
@@ -462,6 +489,53 @@ app.delete("/api/items/:id", verifyToken, async (req, res) => {
     res.status(500).json({ message: "Error deleting item" });
   }
 });
+// Get Billing Data
+app.get("/api/billing/:billId", verifyToken, async (req, res) => {
+  try {
+    const billing = await Billing.findOne({ bill_id: req.params.billId });
+    if (!billing) {
+      return res.status(404).json({ message: "Billing not found" });
+    }
+    res.json(billing);
+  } catch (error) {
+    console.error("Error fetching billing:", error);
+    res.status(500).json({ message: "Error fetching billing data" });
+  }
+});
+
+
+app.get("/api/billing", verifyToken, async (req, res) => {
+  try {
+    // Get pagination parameters from query string
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 50;
+    const skip = (page - 1) * limit;
+    
+    // Count total records for pagination info
+    const total = await Billing.countDocuments();
+    
+    // Get records for the current page
+    const billingRecords = await Billing.find()
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+    
+    // Return with pagination info
+    res.status(200).json({ 
+      message: "Billing records retrieved successfully", 
+      records: billingRecords,
+      pagination: {
+        total,
+        page,
+        pages: Math.ceil(total / limit)
+      }
+    });
+  } catch (error) {
+    console.error("Error fetching billing records:", error);
+    res.status(500).json({ message: "Error fetching billing records" });
+  }
+});
+
 
 // Endpoint to get suggestions based on item names
 app.get('/api/items/suggestions', async (req, res) => {
@@ -541,6 +615,214 @@ app.post('/api/billing', async (req, res) => {
   } catch (error) {
       console.error('Error saving billing data:', error);
       res.status(500).json({ message: 'Failed to save billing data.', error: error.message });
+  }
+});
+// Add this to your server.js file after your existing routes
+
+// Get Dashboard Metrics
+app.get("/api/dashboard/metrics", verifyToken, async (req, res) => {
+  try {
+    // Get current date and date from 30 days ago for comparison
+    const today = new Date();
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(today.getDate() - 30);
+    
+    const sixtyDaysAgo = new Date();
+    sixtyDaysAgo.setDate(today.getDate() - 60);
+    
+    // Get total sales for current period
+    const currentPeriodSales = await Billing.aggregate([
+      { 
+        $match: { 
+          createdAt: { $gte: thirtyDaysAgo }
+        } 
+      },
+      {
+        $group: {
+          _id: null,
+          total: { $sum: "$grandTotal" }
+        }
+      }
+    ]);
+    
+    // Get total sales for previous period
+    const previousPeriodSales = await Billing.aggregate([
+      { 
+        $match: { 
+          createdAt: { $gte: sixtyDaysAgo, $lt: thirtyDaysAgo }
+        } 
+      },
+      {
+        $group: {
+          _id: null,
+          total: { $sum: "$grandTotal" }
+        }
+      }
+    ]);
+    
+    // Calculate total sales and percentage change
+    const totalSales = currentPeriodSales.length > 0 ? currentPeriodSales[0].total : 0;
+    const previousSales = previousPeriodSales.length > 0 ? previousPeriodSales[0].total : 0;
+    const salesChange = previousSales === 0 ? 0 : Math.round(((totalSales - previousSales) / previousSales) * 100);
+    
+    // Get total orders count for current period
+    const currentPeriodOrdersCount = await Billing.countDocuments({
+      createdAt: { $gte: thirtyDaysAgo }
+    });
+    
+    // Get total orders count for previous period
+    const previousPeriodOrdersCount = await Billing.countDocuments({
+      createdAt: { $gte: sixtyDaysAgo, $lt: thirtyDaysAgo }
+    });
+    
+    // Calculate orders percentage change
+    const ordersChange = previousPeriodOrdersCount === 0 ? 0 : 
+      Math.round(((currentPeriodOrdersCount - previousPeriodOrdersCount) / previousPeriodOrdersCount) * 100);
+    
+    // Get total products count
+    const totalProducts = await User.aggregate([
+      { $unwind: "$items" },
+      { $group: { _id: null, count: { $sum: 1 } } }
+    ]);
+    
+    // Get total customers count (assuming each billing record has a unique customer)
+    const totalCustomers = await Billing.distinct('customerPhone').length;
+    
+    // Return all metrics
+    res.status(200).json({
+      totalSales,
+      totalOrders: currentPeriodOrdersCount,
+      totalProducts: totalProducts.length > 0 ? totalProducts[0].count : 0,
+      totalCustomers,
+      changes: {
+        sales: salesChange,
+        orders: ordersChange,
+        products: 0, // Assuming no change for demo
+        customers: 12 // Hardcoded for demo, replace with actual calculation
+      }
+    });
+  } catch (error) {
+    console.error("Error fetching dashboard metrics:", error);
+    res.status(500).json({ message: "Error fetching dashboard metrics" });
+  }
+});
+
+// Get Monthly Sales Data for Chart
+app.get("/api/dashboard/sales-chart", verifyToken, async (req, res) => {
+  try {
+    // Get current year
+    const currentYear = new Date().getFullYear();
+    
+    // Aggregate monthly sales for the current year
+    const monthlySales = await Billing.aggregate([
+      {
+        $match: {
+          invoiceDate: {
+            $gte: new Date(`${currentYear}-01-01`),
+            $lte: new Date(`${currentYear}-12-31`)
+          }
+        }
+      },
+      {
+        $group: {
+          _id: { $month: "$invoiceDate" },
+          total: { $sum: "$grandTotal" }
+        }
+      },
+      {
+        $sort: { _id: 1 }
+      }
+    ]);
+    
+    // Create an array for all 12 months with 0 as default
+    const salesData = Array(12).fill(0);
+    
+    // Fill in the actual data
+    monthlySales.forEach(item => {
+      salesData[item._id - 1] = item.total;
+    });
+    
+    res.status(200).json({
+      labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+      data: salesData
+    });
+  } catch (error) {
+    console.error("Error fetching sales chart data:", error);
+    res.status(500).json({ message: "Error fetching sales chart data" });
+  }
+});
+
+// Get Top Products for Chart
+app.get("/api/dashboard/top-products", verifyToken, async (req, res) => {
+  try {
+    // Aggregate all items from billing records and count quantities
+    const topProducts = await Billing.aggregate([
+      { $unwind: "$items" },
+      {
+        $group: {
+          _id: "$items.name",
+          totalSold: { $sum: "$items.quantity" }
+        }
+      },
+      { $sort: { totalSold: -1 } },
+      { $limit: 5 }
+    ]);
+    
+    res.status(200).json({
+      labels: topProducts.map(product => product._id),
+      data: topProducts.map(product => product.totalSold)
+    });
+  } catch (error) {
+    console.error("Error fetching top products data:", error);
+    res.status(500).json({ message: "Error fetching top products data" });
+  }
+});
+
+// Get Low Stock Items
+app.get("/api/inventory/low-stock", verifyToken, async (req, res) => {
+  try {
+    // Get all items from all users
+    const users = await User.find({}, { items: 1 });
+    
+    // Flatten items array and filter low stock items
+    const allItems = [];
+    users.forEach(user => {
+      user.items.forEach(item => {
+        // Add item with reorder level calculation
+        // Assuming reorder level is 20% of initial quantity or at least 10 units
+        const reorderLevel = Math.max(10, Math.ceil(item.quantity * 0.2));
+        
+        // Determine status based on current stock level
+        let status = 'normal';
+        if (item.quantity <= reorderLevel * 0.5) {
+          status = 'critical';
+        } else if (item.quantity <= reorderLevel) {
+          status = 'warning';
+        }
+        
+        if (status !== 'normal') {
+          allItems.push({
+            name: item.name,
+            currentStock: item.quantity,
+            reorderLevel,
+            status
+          });
+        }
+      });
+    });
+    
+    // Sort by status (critical first) and then by stock level (lowest first)
+    const sortedItems = allItems.sort((a, b) => {
+      if (a.status === 'critical' && b.status !== 'critical') return -1;
+      if (a.status !== 'critical' && b.status === 'critical') return 1;
+      return a.currentStock - b.currentStock;
+    });
+    
+    // Return limited number of items
+    res.status(200).json(sortedItems.slice(0, 10));
+  } catch (error) {
+    console.error("Error fetching low stock items:", error);
+    res.status(500).json({ message: "Error fetching low stock items" });
   }
 });
 

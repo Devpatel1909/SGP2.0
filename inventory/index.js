@@ -12,6 +12,17 @@ document.addEventListener("DOMContentLoaded", () => {
         return token;
     }
 
+    // Function to convert DD-MM-YYYY to YYYY-MM-DD format
+    function convertDateForServer(dateString) {
+        if (!dateString || !dateString.includes('-')) return dateString;
+        
+        const parts = dateString.split('-');
+        if (parts.length !== 3) return dateString;
+        
+        // Convert from DD-MM-YYYY to YYYY-MM-DD
+        return `${parts[2]}-${parts[1]}-${parts[0]}`;
+    }
+
     function displayMessage(message, type = "error") {
         messageDiv.textContent = message;
         messageDiv.className = `message ${type}`;
@@ -86,6 +97,57 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
     
+    // Function to initialize sortable headers
+    function initSortableHeaders() {
+        document.querySelectorAll('.inventory-table th.sortable').forEach(headerCell => {
+            // Remove old handlers to avoid duplicates
+            const newHeader = headerCell.cloneNode(true);
+            headerCell.parentNode.replaceChild(newHeader, headerCell);
+            
+            newHeader.addEventListener('click', () => {
+                const tableElement = newHeader.closest('table');
+                const headerIndex = Array.prototype.indexOf.call(newHeader.parentElement.children, newHeader);
+                const currentIsAscending = newHeader.classList.contains('sort-asc');
+                
+                // Remove all sort classes
+                tableElement.querySelectorAll('th').forEach(th => {
+                    th.classList.remove('sort-asc');
+                    th.classList.remove('sort-desc');
+                });
+                
+                // Add appropriate sort class
+                newHeader.classList.toggle('sort-asc', !currentIsAscending);
+                newHeader.classList.toggle('sort-desc', currentIsAscending);
+                
+                // Get table rows and sort
+                const rows = Array.from(tableElement.querySelectorAll('tbody tr'));
+                const sortedRows = rows.sort((a, b) => {
+                    const aColText = a.querySelector(`td:nth-child(${headerIndex + 1})`).textContent.trim();
+                    const bColText = b.querySelector(`td:nth-child(${headerIndex + 1})`).textContent.trim();
+                    
+                    // Handle numeric vs. string sorting
+                    if (!isNaN(parseFloat(aColText)) && !isNaN(parseFloat(bColText))) {
+                        return currentIsAscending ? 
+                            parseFloat(bColText) - parseFloat(aColText) : 
+                            parseFloat(aColText) - parseFloat(bColText);
+                    } else {
+                        return currentIsAscending ? 
+                            bColText.localeCompare(aColText) : 
+                            aColText.localeCompare(bColText);
+                    }
+                });
+                
+                // Rearrange table rows based on sort
+                const tbody = tableElement.querySelector('tbody');
+                while (tbody.firstChild) {
+                    tbody.removeChild(tbody.firstChild);
+                }
+                
+                tbody.append(...sortedRows);
+            });
+        });
+    }
+    
     async function fetchItems() {
         const token = checkLogin();
         try {
@@ -95,6 +157,9 @@ document.addEventListener("DOMContentLoaded", () => {
             if (!response.ok) throw new Error("Failed to fetch items");
             const items = await response.json();
             renderInventory(items);
+            
+            // Initialize sortable headers after rendering
+            setTimeout(initSortableHeaders, 100);
         } catch (error) {
             displayMessage(error.message);
         }
@@ -131,7 +196,6 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
     
-
     inventoryTable.addEventListener("click", async (e) => {
         const token = checkLogin();
         const button = e.target.closest("button");
@@ -152,6 +216,9 @@ document.addEventListener("DOMContentLoaded", () => {
             if (!isValidItem(updatedItem)) {
                 return displayMessage("Invalid input data", "error");
             }
+
+            // Convert date format before sending to server
+            updatedItem.expiry = convertDateForServer(updatedItem.expiry);
 
             try {
                 const response = await fetch(`${BASE_URL}/api/items/${id}`, {
@@ -213,6 +280,9 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!isValidItem(newItem)) {
             return displayMessage("Invalid input data", "error");
         }
+
+        // Convert date format before sending to server
+        newItem.expiry = convertDateForServer(newItem.expiry);
 
         try {
             const response = await fetch(`${BASE_URL}/api/items`, {

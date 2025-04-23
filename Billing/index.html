@@ -1,203 +1,202 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Billing | eBazar</title>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="index.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-</head>
-<body>
-    <div class="dashboard-container">
-        <!-- Sidebar -->
-        <aside class="sidebar">
-            <div class="sidebar-header">
-                <h2><i class="fas fa-shopping-cart"></i> eMart</h2>
-            </div>
-            <ul class="menu-list">
-                <li><a href="../dashboard/index.html"><i class="fas fa-home"></i><span>Dashboard</span></a></li>
-                <li><a href="../product/index.html"><i class="fas fa-box"></i><span>Products</span></a></li>
-                <li class="active"><a href="../billing/index.html"><i class="fas fa-file-invoice"></i><span>Billing</span></a></li>
-                <li><a href="../customer/customer.html"><i class="fas fa-users"></i><span>Customers</span></a></li>
-                <li><a href="../inventory/index.html"><i class="fas fa-warehouse"></i><span>Inventory</span></a></li>
-                <li><a href="../bills/index.html"><i class="fas fa-file-invoice"></i><span>Bills</span></a></li>
-                <li><a href="../settings/index.html"><i class="fas fa-cog"></i><span>Settings</span></a></li>
-            </ul>
-        </aside>
-
-        <main class="main-content">
-            <header class="top-header">
-                <h2>Billing</h2>
-                <div id="message" class="message" role="alert"></div>
-                <div class="header-actions">
-                    <div class="notification-container">
-                        <i class="fa-solid fa-bell" id="notification-bell"></i>
-                        <span class="notification-badge" id="notification-count">0</span>
-                        <div class="notification-dropdown" id="notification-dropdown">
-                            <div class="notification-header">
-                                <h3>Notifications</h3>
-                                <button id="mark-all-read">Mark all as read</button>
-                            </div>
-                            <div class="notification-body" id="notification-list">
-                                <!-- Notifications will be added here -->
-                            </div>
-                            <div class="notification-footer">
-                                <a href="../inventory/index.html">View All</a>
-                            </div>
-                        </div>
-                    </div>
-                    <i class="fa-solid fa-flag"></i>
-                    <div class="profile">
-                        <span id="username">Guest</span>
-                        <button id="auth-btn">Login</button>
-                    </div>
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Billing | eBazar</title>
+        <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="index.css">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    </head>
+    <body>
+        <div class="dashboard-container">
+            <!-- Sidebar -->
+            <aside class="sidebar">
+                <div class="sidebar-header">
+                    <h2><i class="fas fa-shopping-cart"></i> eMart</h2>
                 </div>
-            </header>
+                <ul class="menu-list">
+                    <li><a href="../dashboard/index.html"><i class="fas fa-home"></i><span>Dashboard</span></a></li>
+                    <li><a href="../product/index.html"><i class="fas fa-box"></i><span>Products</span></a></li>
+                    <li class="active"><a href="../billing/index.html"><i class="fas fa-file-invoice"></i><span>Billing</span></a></li>
+                    <li><a href="../customer/customer.html"><i class="fas fa-users"></i><span>Customers</span></a></li>
+                    <li><a href="../inventory/index.html"><i class="fas fa-warehouse"></i><span>Inventory</span></a></li>
+                    <li><a href="../settings/index.html"><i class="fas fa-cog"></i><span>Settings</span></a></li>
+                </ul>
+            </aside>
 
-            <div class="billing-container">
-                <!-- Billing Header -->
-                <div class="billing-header">
-                    <div class="header-left">
-                        <h1>New Invoice</h1>
-                    </div>
-                    <div class="header-right">
-                        <div class="invoice-info">
-                            <div class="info-group">
-                                <label for="invoice-date">Date:</label>
-                                <input type="date" id="invoice-date" value="2024-02-01" required>
-                            </div>
-                            <div class="info-group">
-                                <label for="invoice-no">Invoice No:</label>
-                                <input type="text" id="invoice-no" value="INV-2024-001" readonly>
-                            </div>
-                            <div class="info-group">
-                                <label for="cashier">Cashier:</label>
-                                <input type="text" id="cashier-name" value="Guest" readonly>
+            <main class="main-content">
+                <header class="top-header">
+                    <h2>Billing</h2>
+                    <div id="message" class="message" role="alert"></div>
+                    <div class="header-actions">
+                        <div class="notification-container">
+                            <i class="fa-solid fa-bell" id="notification-bell"></i>
+                            <span class="notification-badge" id="notification-count">0</span>
+                            <div class="notification-dropdown" id="notification-dropdown">
+                                <div class="notification-header">
+                                    <h3>Notifications</h3>
+                                    <button id="mark-all-read">Mark all as read</button>
+                                </div>
+                                <div class="notification-body" id="notification-list">
+                                    <!-- Notifications will be added here -->
+                                </div>
+                                <div class="notification-footer">
+                                    <a href="../inventory/index.html">View All</a>
+                                </div>
                             </div>
                         </div>
+                        <i class="fa-solid fa-flag"></i>
+                        <div class="profile">
+                            <span id="username">Guest</span>
+                            <button id="auth-btn">Login</button>
+                        </div>
                     </div>
-                </div>
+                </header>
 
-                <!-- Customer Details -->
-                <div class="billing-details">
-                    <h3>Customer Information</h3>
-                    <div class="details-grid">
-                        <div class="form-group">
-                            <label for="customer-name">Customer Name</label>
-                            <input type="text" id="customer-name" placeholder="Enter customer name" required>
+                <div class="billing-container">
+                    <!-- Billing Header -->
+                    <div class="billing-header">
+                        <div class="header-left">
+                            <h1>New Invoice</h1>
                         </div>
-                        <div class="form-group">
-                            <label for="customer-email">Email</label>
-                            <input type="email" id="customer-email" placeholder="Enter email">
-                        </div>
-                        <div class="form-group">
-                            <label for="customer-phone">Phone</label>
-                            <input type="tel" id="customer-phone" placeholder="Enter phone number" required>
-                        </div>
-                        <div class="form-group full-width">
-                            <label for="customer-address">Address</label>
-                            <textarea id="customer-address" placeholder="Enter address" rows="3"></textarea>
+                        <div class="header-right">
+                            <div class="invoice-info">
+                                <div class="info-group">
+                                    <label for="invoice-date">Date:</label>
+                                    <input type="date" id="invoice-date" value="2024-02-01" required>
+                                </div>
+                                <div class="info-group">
+                                    <label for="invoice-no">Invoice No:</label>
+                                    <input type="text" id="invoice-no" value="INV-2024-001" readonly>
+                                </div>
+                                <div class="info-group">
+                                    <label for="cashier">Cashier:</label>
+                                    <input type="text" id="cashier-name" value="Guest" readonly>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                <!-- Items Table -->
-                <div class="billing-items">
-                    <div class="table-header">
-                        <h3>Bill Items</h3>
+                    <!-- Customer Details -->
+                    <div class="billing-details">
+                        <h3>Customer Information</h3>
+                        <div class="details-grid">
+                            <div class="form-group">
+                                <label for="customer-name">Customer Name</label>
+                                <input type="text" id="customer-name" placeholder="Enter customer name" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="customer-email">Email</label>
+                                <input type="email" id="customer-email" placeholder="Enter email">
+                            </div>
+                            <div class="form-group">
+                                <label for="customer-phone">Phone</label>
+                                <input type="tel" id="customer-phone" placeholder="Enter phone number" required>
+                            </div>
+                            <div class="form-group full-width">
+                                <label for="customer-address">Address</label>
+                                <textarea id="customer-address" placeholder="Enter address" rows="3"></textarea>
+                            </div>
+                        </div>
                     </div>
-                    <div class="table-container">
+
+                    <!-- Items Table -->
+                    <div class="billing-items">
+                        <div class="table-header">
+                            <h3>Bill Items</h3>
+                        </div>
+                        <div class="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Product Name</th>
+                                        <th>Product ID</th>
+                                        <th>Price (MRP)</th>
+                                        <th>Quantity</th>
+                                        <th>Total</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="bill-items">
+                                    <tr>
+                                        <td>
+                                            <input type="text" class="product-name" placeholder="Enter name" autocomplete="off" required>
+                                            <div class="autocomplete-suggestions" style="display: none;"></div>
+                                        </td>
+                                        <td><input type="text" class="product-id" placeholder="Enter ID" required></td>
+                                        <td>
+                                            <input type="number" class="item-price" value="0.00" step="0.01" readonly>
+                                        </td>
+                                        <td><input type="number" class="item-quantity" value="1" min="1" required></td>
+                                        <td class="item-total">₹0.00</td>
+                                        <td>
+                                            <button class="delete-row" type="button" aria-label="Delete row">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Bill Totals -->
+                    <div class="billing-totals">
                         <table>
-                            <thead>
-                                <tr>
-                                    <th>Product Name</th>
-                                    <th>Product ID</th>
-                                    <th>Price (MRP)</th>
-                                    <th>Quantity</th>
-                                    <th>Total</th>
-                                    <th>Action</th>
-                                </tr>
-                            </thead>
-                            <tbody id="bill-items">
-                                <tr>
-                                    <td>
-                                        <input type="text" class="product-name" placeholder="Enter name" autocomplete="off" required>
-                                        <div class="autocomplete-suggestions" style="display: none;"></div>
-                                    </td>
-                                    <td><input type="text" class="product-id" placeholder="Enter ID" required></td>
-                                    <td>
-                                        <input type="number" class="item-price" value="0.00" step="0.01" readonly>
-                                    </td>
-                                    <td><input type="number" class="item-quantity" value="1" min="1" required></td>
-                                    <td class="item-total">₹0.00</td>
-                                    <td>
-                                        <button class="delete-row" type="button" aria-label="Delete row">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </td>
-                                </tr>
-                            </tbody>
+                            <tr>
+                                <th>Subtotal:</th>
+                                <td id="subtotal">₹0.00</td>
+                            </tr>
+                            <tr>
+                                <th>Tax (10%):</th>
+                                <td id="tax">₹0.00</td>
+                            </tr>  
+                            <tr class="grand-total">
+                                <th>Total Amount:</th>
+                                <td id="grand-total">₹0.00</td>
+                            </tr>
                         </table>
                     </div>
-                </div>
 
-                <!-- Bill Totals -->
-                <div class="billing-totals">
-                    <table>
-                        <tr>
-                            <th>Subtotal:</th>
-                            <td id="subtotal">₹0.00</td>
-                        </tr>
-                        <tr>
-                            <th>Tax (10%):</th>
-                            <td id="tax">₹0.00</td>
-                        </tr>  
-                        <tr class="grand-total">
-                            <th>Total Amount:</th>
-                            <td id="grand-total">₹0.00</td>
-                        </tr>
-                    </table>
-                </div>
+                    <!-- Payment Details -->
+                    <div class="payment-details">
+                        <h3>Payment Information</h3>
+                        <div class="payment-grid">
+                            <div class="form-group">
+                                <label for="payment-method">Payment Method</label>
+                                <select id="payment-method" required>
+                                    <option value="">Select Payment Method</option>
+                                    <option value="cash">Cash</option>
+                                    <option value="card">Credit Card</option>
+                                    <option value="bank">Bank Transfer</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="payment-status">Payment Status</label>
+                                <select id="payment-status" required>
+                                    <option value="pending">Pending</option>
+                                    <option value="partial">Partial</option>
+                                    <option value="paid">Paid</option>
+                                </select>
+                            </div>
+                            <div class="form-group full-width">
+                                <label for="payment-note">Payment Note</label>
+                                <textarea id="payment-note" placeholder="Add payment notes..." rows="3"></textarea>
+                            </div>
+                        </div>
+                    </div> 
 
-                <!-- Payment Details -->
-                <div class="payment-details">
-                    <h3>Payment Information</h3>
-                    <div class="payment-grid">
-                        <div class="form-group">
-                            <label for="payment-method">Payment Method</label>
-                            <select id="payment-method" required>
-                                <option value="">Select Payment Method</option>
-                                <option value="cash">Cash</option>
-                                <option value="card">Credit Card</option>
-                                <option value="bank">Bank Transfer</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="payment-status">Payment Status</label>
-                            <select id="payment-status" required>
-                                <option value="pending">Pending</option>
-                                <option value="partial">Partial</option>
-                                <option value="paid">Paid</option>
-                            </select>
-                        </div>
-                        <div class="form-group full-width">
-                            <label for="payment-note">Payment Note</label>
-                            <textarea id="payment-note" placeholder="Add payment notes..." rows="3"></textarea>
-                        </div>
+                    <!-- Action Buttons -->
+                    <div class="billing-footer">
+                        <button class="btn-success" type="button" id="next-button">
+                            <i class="fas fa-arrow-right"></i> Next
+                        </button>
                     </div>
-                </div> 
-
-                <!-- Action Buttons -->
-                <div class="billing-footer">
-                    <button class="btn-success" type="button" id="next-button">
-                        <i class="fas fa-arrow-right"></i> Next
-                    </button>
                 </div>
-            </div>
-        </main>
-    </div>
+            </main>
+        </div>
 
-    <script src="index.js"></script>
-</body>
-</html>
+        <script src="index.js"></script>
+    </body>
+    </html>

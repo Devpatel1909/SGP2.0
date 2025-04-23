@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard | eBazar</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-    <link rel="stylesheet" href="index.css">
+        <link rel="stylesheet" href="index.css">
 </head>
 <body>
     <div class="dashboard-container">
@@ -15,23 +15,21 @@
                 <h2><i class="fas fa-shopping-cart"></i> eMart</h2>
             </div>
             <ul class="menu-list">
-                <li class="active"><a href="index.html"><i class="fa-solid fa-house"></i> Dashboard</a></li>
+                <li class="active"><a href="./index.html"><i class="fa-solid fa-house"></i> Dashboard</a></li>
                 <li><a href="../product/index.html"><i class="fa-solid fa-box"></i> Products</a></li>
                 <li><a href="../Billing/index.html"><i class="fas fa-file-invoice"></i> Billing</a></li>
-                <li><a href="customers.html"><i class="fas fa-users"></i> Customers</a></li>
-                <li><a href="../inventory/index.html"><i class="fa-solid fa-warehouse"></i> Inventory</a></li>
-                <li><a href="../Billing/index.html"><i class="fa-solid fa-file-invoice"></i> Bills</a></li>
-                <li><a href="settings.html"><i class="fa-solid fa-cog"></i> Settings</a></li>
+                <li><a href="../customer/customer.html"><i class="fas fa-users"></i> Customers</a></li>
+                <li><a href="../inventory/index.html"><i class="fas fa-warehouse"></i> Inventory</a></li>
+                <li><a href="#"><i class="fa-solid fa-cog"></i> Settings</a></li>
             </ul>
         </aside>
-        
+
         <!-- Main Content -->
         <main class="main-content">
             <header class="top-header">
-                <input type="text" class="search-bar" placeholder="Search...">
+                <h2>Dashboard</h2>
+                <div id="message" class="message" role="alert"></div>
                 <div class="header-actions">
-                    <i class="fa-solid fa-bell"></i>
-                    <i class="fa-solid fa-flag"></i>
                     <div class="profile">
                         <span id="username">Guest</span>
                         <button id="auth-btn">Login</button>
@@ -39,29 +37,119 @@
                 </div>
             </header>
 
-            <section class="dashboard-section">
-                <h2>Dashboard Overview</h2>
-                <div id="message" class="message" role="alert"></div>
+            <section class="dashboard-content">
+                <!-- Key Metrics Cards -->
+                <div class="metrics-container">
+                    <div class="metric-card">
+                        <div class="metric-icon">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <div class="metric-content">
+                            <h3>Total Sales</h3>
+                            <p class="metric-value">₹<span id="total-sales">0</span></p>
+                            <p class="metric-change positive"><i class="fas fa-arrow-up"></i> 15% from last month</p>
+                        </div>
+                    </div>
 
-                <!-- Dashboard Cards -->
-                <div class="dashboard-cards">
-                    <div class="card">
-                        <h3>Total Products</h3>
-                        <p id="total-products">0</p>
+                    <div class="metric-card">
+                        <div class="metric-icon">
+                            <i class="fas fa-shopping-bag"></i>
+                        </div>
+                        <div class="metric-content">
+                            <h3>Total Orders</h3>
+                            <p class="metric-value"><span id="total-orders">0</span></p>
+                            <p class="metric-change positive"><i class="fas fa-arrow-up"></i> 8% from last month</p>
+                        </div>
                     </div>
-                    <div class="card">
-                        <h3>Total Sales</h3>
-                        <p id="total-sales">0</p>
+
+                    <div class="metric-card">
+                        <div class="metric-icon">
+                            <i class="fas fa-box"></i>
+                        </div>
+                        <div class="metric-content">
+                            <h3>Products</h3>
+                            <p class="metric-value"><span id="total-products">0</span></p>
+                            <p class="metric-change neutral"><i class="fas fa-minus"></i> No change</p>
+                        </div>
                     </div>
-                    <div class="card">
-                        <h3>Total Revenue</h3>
-                        <p id="total-revenue">0</p>
+
+                    <div class="metric-card">
+                        <div class="metric-icon">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div class="metric-content">
+                            <h3>Customers</h3>
+                            <p class="metric-value"><span id="total-customers">0</span></p>
+                            <p class="metric-change positive"><i class="fas fa-arrow-up"></i> 12% from last month</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts Section -->
+                <div class="charts-container">
+                    <div class="chart-card">
+                        <h3>Sales Overview</h3>
+                        <div class="chart-container" id="sales-chart">
+                            <canvas id="sales-chart-canvas"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="chart-card">
+                        <h3>Top Products</h3>
+                        <div class="chart-container" id="products-chart">
+                            <canvas id="products-chart-canvas"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Orders and Low Stock Items -->
+                <div class="tables-container">
+                    <div class="table-card">
+                        <div class="table-header">
+                            <h3>Recent Orders</h3>
+                            <a href="../Billing/index.html" class="view-all">View All <i class="fas fa-arrow-right"></i></a>
+                        </div>
+                        <table class="dashboard-table">
+                            <thead>
+                                <tr>
+                                    <th>Order ID</th>
+                                    <th>Customer</th>
+                                    <th>Date</th>
+                                    <th>Amount</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="recent-orders-body">
+                                <!-- Dynamic content will be added here -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="table-card">
+                        <div class="table-header">
+                            <h3>Low Stock Items</h3>
+                            <a href="../inventory/index.html" class="view-all">View All <i class="fas fa-arrow-right"></i></a>
+                        </div>
+                        <table class="dashboard-table">
+                            <thead>
+                                <tr>
+                                    <th>Item</th>
+                                    <th>Current Stock</th>
+                                    <th>Reorder Level</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="low-stock-body">
+                                <!-- Dynamic content will be added here -->
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </section>
         </main>
     </div>
 
-    <script src="index.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="index.js"></script>
 </body>
 </html>

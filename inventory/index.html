@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inventory Management | eBazar</title>
+    <title>Inventory Management | eMart</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <link rel="stylesheet" href="index.css">
 </head>
@@ -20,7 +20,6 @@
                 <li><a href="../Billing/index.html "><i class="fas fa-file-invoice"></i> Billing</a></li>
                 <li><a href="../customer/customer.html"><i class="fas fa-users"></i> Customers</a></li>
                 <li class="active"><a href="#"><i class="fas fa-warehouse"></i> Inventory</a></li>
-                <li><a href="../Billing/index.html"><i class="fa-solid fa-file-invoice"></i> Bills</a></li>
                 <li><a href="#"><i class="fa-solid fa-cog"></i> Settings</a></li>
             </ul>
         </aside>
@@ -31,30 +30,24 @@
                 <h2>Inventory</h2>
                 <div id="message" class="message" role="alert"></div>
                 <div class="header-actions">
-                    <i class="fa-solid fa-bell"></i>
-                    <i class="fa-solid fa-flag"></i>
                     <div class="profile">
                         <span id="username">Guest</span>
                         <button id="auth-btn">Login</button>
                     </div>
-                    
-                    
                 </div>
             </header>
 
             <section class="inventory-section">
-             
-
                 <!-- Inventory Table -->
                 <table id="inventory-table" class="inventory-table">
                     <thead>
                         <tr>
-                            <th>ID</th>
-                            <th>Name</th>
-                            <th>Quantity</th>
-                            <th>Price</th>
-                            <th>Profit/item</th>
-                            <th>Expiry Date</th>
+                            <th class="glass-effect">ID</th>
+                            <th class="sortable">Name</th>
+                            <th class="sortable">Quantity</th>
+                            <th class="sortable">Price</th>
+                            <th class="sortable">Profit/item</th>
+                            <th class="sortable">Expiry Date</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
@@ -69,7 +62,7 @@
                             <td><input type="number" id="new-quantity" placeholder="Quantity" required></td>
                             <td><input type="number" id="new-price" placeholder="Price" required></td>
                             <td><input type="number" id="new-profit" placeholder="Profit" required></td>
-                            <td><input type="date" id="new-expiry" required></td>
+                            <td><input type="text" id="new-expiry" placeholder="DD-MM-YYYY" required></td>
                             <td><button id="add-item-btn">Add</button></td>
                         </tr>
                     </tfoot>
