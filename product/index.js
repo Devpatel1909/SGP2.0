@@ -628,167 +628,185 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // Handle edit and delete buttons
-    inventoryTable.addEventListener("click", async (e) => {
-        const token = checkLogin();
+ // The part of the code that needs to be fixed - replace the edit and save button handlers
+
+// Handle edit and delete buttons
+inventoryTable.addEventListener("click", async (e) => {
+    const token = checkLogin();
+    
+    // Handle delete button
+    const deleteButton = e.target.closest(".delete-btn");
+    if (deleteButton) {
+        const id = deleteButton.dataset.id;
         
-        // Handle delete button
-        const deleteButton = e.target.closest(".delete-btn");
-        if (deleteButton) {
-            const id = deleteButton.dataset.id;
-            
-            if (confirm("Are you sure you want to delete this product?")) {
-                try {
-                    const response = await fetch(`${BASE_URL}/api/items/${id}`, {
-                        method: "DELETE",
-                        headers: {
-                            "Authorization": `Bearer ${token}`,
-                            "Content-Type": "application/json"
-                        }
-                    });
-                    
-                    if (!response.ok) {
-                        const errorData = await response.json();
-                        throw new Error(errorData.message || "Failed to delete item");
-                    }
-                    
-                    fetchItems();
-                    displayMessage("Product deleted successfully!", "success");
-                } catch (error) {
-                    displayMessage(error.message);
-                }
-            }
-            return;
-        }
-        
-        // Handle edit button
-        const editButton = e.target.closest(".edit-btn");
-        if (editButton) {
-            const id = editButton.dataset.id;
-            const row = editButton.closest("tr");
-            
-            // Toggle to edit mode
-            if (!row.classList.contains("editing")) {
-                // First fetch the current item details
-                try {
-                    const response = await fetch(`${BASE_URL}/api/items/${id}`, {
-                        headers: {
-                            "Authorization": `Bearer ${token}`,
-                            "Content-Type": "application/json"
-                        }
-                    });
-                    
-                    if (!response.ok) {
-                        const errorData = await response.json();
-                        throw new Error(errorData.message || "Failed to fetch item details");
-                    }
-                    
-                    const item = await response.json();
-                    
-                    // Store original values for potential reset
-                    row.dataset.original = JSON.stringify(item);
-                    
-                    // Replace cells with input fields
-                    const cells = row.querySelectorAll("td");
-                    
-                    // Skip ID column
-                    cells[1].innerHTML = `<input type="text" class="edit-name" value="${item.name}">`;
-                    cells[2].innerHTML = `<input type="number" class="edit-quantity" value="${item.quantity}" min="0">`;
-                    cells[3].innerHTML = `<input type="number" class="edit-price" value="${item.price}" min="0" step="0.01">`;
-                    cells[4].innerHTML = `<input type="number" class="edit-profit" value="${item.profit || 0}" min="0" step="0.01">`;
-                    
-                    // Format the date for the input
-                    const expiryDate = item.expiry ? new Date(item.expiry).toISOString().split('T')[0] : '';
-                    cells[5].innerHTML = `<input type="date" class="edit-expiry" value="${expiryDate}">`;
-                    
-                    // Change action buttons
-                    cells[6].innerHTML = `
-                        <div class="action-buttons">
-                            <button class="action-btn save-btn" data-id="${id}" title="Save Changes"><i class="fas fa-save"></i></button>
-                            <button class="action-btn cancel-btn" data-id="${id}" title="Cancel"><i class="fas fa-times"></i></button>
-                        </div>
-                    `;
-                    
-                    row.classList.add("editing");
-                } catch (error) {
-                    displayMessage(error.message);
-                }
-            }
-            return;
-        }
-        
-        // Handle save button
-        const saveButton = e.target.closest(".save-btn");
-        if (saveButton) {
-            const id = saveButton.dataset.id;
-            const row = saveButton.closest("tr");
-            
-            // Get values from input fields
-            const name = row.querySelector(".edit-name").value.trim();
-            const quantity = parseInt(row.querySelector(".edit-quantity").value);
-            const price = parseFloat(row.querySelector(".edit-price").value);
-            const profit = parseFloat(row.querySelector(".edit-profit").value);
-            const expiry = row.querySelector(".edit-expiry").value;
-            
-            // Validate inputs
-            if (!name) {
-                displayMessage("Please enter a product name", "error");
-                return;
-            }
-            
-            if (isNaN(quantity) || quantity < 0) {
-                displayMessage("Please enter a valid quantity", "error");
-                return;
-            }
-            
-            if (isNaN(price) || price <= 0) {
-                displayMessage("Please enter a valid price", "error");
-                return;
-            }
-            
-            if (isNaN(profit) || profit < 0) {
-                displayMessage("Please enter a valid profit", "error");
-                return;
-            }
-            
-            // Update item
+        if (confirm("Are you sure you want to delete this product?")) {
             try {
                 const response = await fetch(`${BASE_URL}/api/items/${id}`, {
-                    method: "PUT",
+                    method: "DELETE",
                     headers: {
                         "Authorization": `Bearer ${token}`,
                         "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({
-                        name,
-                        quantity,
-                        price,
-                        profit,
-                        expiry
-                    })
+                    }
                 });
                 
                 if (!response.ok) {
                     const errorData = await response.json();
-                    throw new Error(errorData.message || "Failed to update item");
+                    throw new Error(errorData.message || "Failed to delete item");
                 }
                 
-                // Refresh table to show updated values
                 fetchItems();
-                displayMessage("Product updated successfully!", "success");
+                displayMessage("Product deleted successfully!", "success");
             } catch (error) {
                 displayMessage(error.message);
             }
+        }
+        return;
+    }
+    
+    // Handle edit button - fixed this part to work correctly
+    const editButton = e.target.closest(".edit-btn");
+    if (editButton) {
+        const id = editButton.dataset.id;
+        const row = editButton.closest("tr");
+        
+        // Toggle to edit mode
+        if (!row.classList.contains("editing")) {
+            // First fetch the current item details
+            try {
+                const response = await fetch(`${BASE_URL}/api/items/${id}`, {
+                    headers: {
+                        "Authorization": `Bearer ${token}`,
+                        "Content-Type": "application/json"
+                    }
+                });
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || "Failed to fetch item details");
+                }
+                
+                const item = await response.json();
+                
+                // Store original values for potential reset
+                row.dataset.original = JSON.stringify(item);
+                
+                // Replace cells with input fields
+                const cells = row.querySelectorAll("td");
+                
+                // Skip ID column (cells[0])
+                cells[1].innerHTML = `<input type="text" class="edit-name" value="${item.name}">`;
+                cells[2].innerHTML = `<input type="number" class="edit-quantity" value="${item.quantity}" min="0">`;
+                cells[3].innerHTML = `<input type="number" class="edit-price" value="${item.price}" min="0" step="0.01">`;
+                cells[4].innerHTML = `<input type="number" class="edit-profit" value="${item.profit || 0}" min="0" step="0.01">`;
+                
+                // Format the date for the input
+                const expiryDate = item.expiry ? new Date(item.expiry).toISOString().split('T')[0] : '';
+                cells[5].innerHTML = `<input type="date" class="edit-expiry" value="${expiryDate}">`;
+                
+                // Change action buttons
+                cells[6].innerHTML = `
+                    <div class="action-buttons">
+                        <button class="action-btn save-btn" data-id="${id}" title="Save Changes"><i class="fas fa-save"></i></button>
+                        <button class="action-btn cancel-btn" data-id="${id}" title="Cancel"><i class="fas fa-times"></i></button>
+                    </div>
+                `;
+                
+                row.classList.add("editing");
+            } catch (error) {
+                displayMessage(error.message);
+            }
+        }
+        return;
+    }
+    
+    // Handle save button - fixed this part to work correctly
+    const saveButton = e.target.closest(".save-btn");
+    if (saveButton) {
+        const id = saveButton.dataset.id;
+        const row = saveButton.closest("tr");
+        
+        // Get values from input fields
+        const nameInput = row.querySelector(".edit-name");
+        const quantityInput = row.querySelector(".edit-quantity");
+        const priceInput = row.querySelector(".edit-price");
+        const profitInput = row.querySelector(".edit-profit");
+        const expiryInput = row.querySelector(".edit-expiry");
+        
+        if (!nameInput || !quantityInput || !priceInput || !profitInput) {
+            displayMessage("Could not find all input fields", "error");
             return;
         }
         
-        // Handle cancel button
-        const cancelButton = e.target.closest(".cancel-btn");
-        if (cancelButton) {
-            // Restore the original row by refreshing the table
-            fetchItems();
+        const name = nameInput.value.trim();
+        const quantity = parseInt(quantityInput.value);
+        const price = parseFloat(priceInput.value);
+        const profit = parseFloat(profitInput.value);
+        const expiry = expiryInput ? expiryInput.value : '';
+        
+        // Validate inputs
+        if (!name) {
+            displayMessage("Please enter a product name", "error");
             return;
         }
-    });
+        
+        if (isNaN(quantity) || quantity < 0) {
+            displayMessage("Please enter a valid quantity", "error");
+            return;
+        }
+        
+        if (isNaN(price) || price <= 0) {
+            displayMessage("Please enter a valid price", "error");
+            return;
+        }
+        
+        if (isNaN(profit) || profit < 0) {
+            displayMessage("Please enter a valid profit", "error");
+            return;
+        }
+        
+        // Update item
+        try {
+            const response = await fetch(`${BASE_URL}/api/items/${id}`, {
+                method: "PUT",
+                headers: {
+                    "Authorization": `Bearer ${token}`,
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    name,
+                    quantity,
+                    price,
+                    profit,
+                    expiry
+                })
+            });
+            
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || "Failed to update item");
+            }
+            
+            // Refresh table to show updated values
+            fetchItems();
+            displayMessage("Product updated successfully!", "success");
+            
+            // Remove editing class
+            row.classList.remove("editing");
+        } catch (error) {
+            displayMessage(error.message);
+        }
+        return;
+    }
+    
+    // Handle cancel button
+    const cancelButton = e.target.closest(".cancel-btn");
+    if (cancelButton) {
+        // Just refresh the table to restore original state
+        fetchItems();
+        return;
+    }
+});
+
 
     // Filter products by search
     const setupSearch = () => {

@@ -4,7 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Inventory Management | eMart</title>
+    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <!-- Flatpickr for Date Picking -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <!-- Custom CSS -->
     <link rel="stylesheet" href="index.css">
 </head>
 <body>
@@ -17,19 +21,18 @@
             <ul class="menu-list">
                 <li><a href="../dashboard/index.html"><i class="fa-solid fa-house"></i> Dashboard</a></li>
                 <li><a href="../product/index.html"><i class="fa-solid fa-box"></i> Products</a></li>
-                <li><a href="../Billing/index.html "><i class="fas fa-file-invoice"></i> Billing</a></li>
+                <li><a href="../Billing/index.html"><i class="fas fa-file-invoice"></i> Billing</a></li>
                 <li><a href="../customer/customer.html"><i class="fas fa-users"></i> Customers</a></li>
                 <li class="active"><a href="#"><i class="fas fa-warehouse"></i> Inventory</a></li>
-                <li><a href="#"><i class="fa-solid fa-cog"></i> Settings</a></li>
             </ul>
         </aside>
-
-        <!-- Main Content -->
+        
         <main class="main-content">
             <header class="top-header">
                 <h2>Inventory</h2>
                 <div id="message" class="message" role="alert"></div>
                 <div class="header-actions">
+                    
                     <div class="profile">
                         <span id="username">Guest</span>
                         <button id="auth-btn">Login</button>
@@ -37,11 +40,14 @@
                 </div>
             </header>
 
+            <!-- Action Buttons -->
+            
             <section class="inventory-section">
                 <!-- Inventory Table -->
                 <table id="inventory-table" class="inventory-table">
                     <thead>
                         <tr>
+                            <th><input type="checkbox" id="select-all"></th>
                             <th class="glass-effect">ID</th>
                             <th class="sortable">Name</th>
                             <th class="sortable">Quantity</th>
@@ -54,23 +60,36 @@
                     <tbody>
                         <!-- Dynamic rows will be rendered here -->
                     </tbody>
-                    <!-- New Item Row -->
-                    <tfoot>
-                        <tr>
-                            <td></td> <!-- Removed ID input -->
-                            <td><input type="text" id="new-name" placeholder="Name" required></td>
-                            <td><input type="number" id="new-quantity" placeholder="Quantity" required></td>
-                            <td><input type="number" id="new-price" placeholder="Price" required></td>
-                            <td><input type="number" id="new-profit" placeholder="Profit" required></td>
-                            <td><input type="text" id="new-expiry" placeholder="DD-MM-YYYY" required></td>
-                            <td><button id="add-item-btn">Add</button></td>
-                        </tr>
-                    </tfoot>
                 </table>
             </section>
+            
+            <div class="inventory-actions">
+                <div class="action-buttons">
+                    <button id="export-csv" class="export-btn"><i class="fas fa-file-csv"></i> Export CSV</button>
+                    <button id="export-pdf" class="export-btn"><i class="fas fa-file-pdf"></i> Export PDF</button>
+                    <button id="print-inventory" class="export-btn"><i class="fas fa-print"></i> Print</button>
+                    <button id="batch-delete" class="danger-btn" disabled><i class="fas fa-trash"></i> Delete Selected</button>
+                </div>
+            </div>
+            <!-- Quick Add Item Section -->
+            <div class="quick-add-section">
+                <h3>Quick Add Item</h3>
+                <div class="quick-add-form">
+                    <input type="text" id="new-name" placeholder="Name" required>
+                    <input type="number" id="new-quantity" placeholder="Quantity" required>
+                    <input type="number" id="new-price" placeholder="Price" required>
+                    <input type="number" id="new-profit" placeholder="Profit" required>
+                    <input type="text" id="new-expiry" placeholder="DD-MM-YYYY" required>
+                    <button id="add-item-btn">Add Item</button>
+                </div>
+            </div>
         </main>
     </div>
 
+    <!-- Scripts - IMPORTANT: Load in correct order -->
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
     <script src="index.js" defer></script>
 </body>
 </html>

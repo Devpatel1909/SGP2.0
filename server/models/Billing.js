@@ -1,7 +1,7 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
-// Item Schema (no changes needed)
-const itemSchema = new mongoose.Schema({
+// Define a schema for bill items
+const BillItemSchema = new mongoose.Schema({
     name: { type: String, required: true },
     id: { type: String, required: true },
     price: { type: Number, required: true },
@@ -9,34 +9,30 @@ const itemSchema = new mongoose.Schema({
     total: { type: Number, required: true }
 });
 
-// Modified Billing Schema with customerId
-const billingSchema = new mongoose.Schema({
-    // Add customerId field
-    customerId: { 
-        type: String,
-        required: false, // Make it optional to support both new and existing customers
-        index: true // Add index for faster lookups
-    },
+// Define the main billing schema
+const BillingSchema = new mongoose.Schema({
     customerName: { type: String, required: true },
     customerPhone: { type: String, required: true },
-    customerEmail: { type: String, required: false },
-    customerAddress: { type: String, required: false },
+    customerEmail: { type: String },
+    customerAddress: { type: String },
     invoiceDate: { type: Date, default: Date.now },
-    invoiceNo: { type: String, required: true, unique: true }, // Added unique constraint
+    invoiceNo: { type: String, required: true },
+    cashier: { type: String },
     paymentMethod: { type: String, required: true },
     paymentStatus: { type: String, required: true },
-    paymentNote: { type: String, required: false },
-    items: [itemSchema],
+    paymentNote: { type: String },
+    items: [BillItemSchema],
+    isDraft: { type: Boolean, default: false },
     bill_id: { type: String, required: true, unique: true },
-}, { 
-    timestamps: true // Add timestamps for createdAt and updatedAt
+    grandTotal: { type: Number, default: 0 }
+}, {
+    timestamps: true
 });
 
-// Create indexes for more efficient querying
-billingSchema.index({ customerId: 1 });
-billingSchema.index({ customerPhone: 1 });
-billingSchema.index({ invoiceNo: 1 }, { unique: true });
+// Define indexes separately
+BillingSchema.index({ invoiceNo: 1 }, { unique: true });
+BillingSchema.index({ customerPhone: 1 });
 
-const Billing = mongoose.model('Billing', billingSchema);
+const Billing = mongoose.model('Billing', BillingSchema);
 
 export default Billing;

@@ -18,7 +18,13 @@ document.addEventListener("DOMContentLoaded", () => {
     let pageSize = 10;
     let customers = [];
     let filteredCustomers = [];
-    
+    const LOYALTY_TIERS = {
+        BRONZE: { threshold: 5000, discount: 0.05 },
+        SILVER: { threshold: 15000, discount: 0.1 },
+        GOLD: { threshold: 30000, discount: 0.15 },
+        PLATINUM: { threshold: 50000, discount: 0.2 }
+    };
+
     // Check login status
     function checkLogin() {
         const token = localStorage.getItem("token");
@@ -864,7 +870,567 @@ async function fetchBillingData() {
         // Render the sorted page
         renderCustomersPage();
     }
+    // Fetch all billing data to extract customers
+async function fetchBillingData() {
+    const token = checkLogin();
+    try {
+        const response = await fetch(`${BASE_URL}/api/billing`, {
+            headers: { 
+                "Authorization": `Bearer ${token}`,
+                "Content-Type": "application/json"
+            },
+        });
+        if (!response.ok) throw new Error("Failed to fetch billing data");
+        
+        const data = await response.json();
+        
+        // Extract records from the response
+        const billingData = data.records || [];
+        
+        // Log data for debugging
+        console.log("Billing data received, count:", billingData.length);
+        if (billingData.length > 0) {
+            console.log("Sample billing record:", billingData[0]);
+        }
+        
+        processCustomers(billingData);
+        return billingData;
+    } catch (error) {
+        console.error("Error fetching billing data:", error);
+        displayMessage(error.message);
+        return [];
+    }
+}
+
+// Process billing data to extract unique customers with improved structure handling
+function processCustomers(billingData) {
+    // Create a map to track unique customers and their orders
+    const customerMap = new Map();
     
+    billingData.forEach(bill => {
+        // Use phone as unique identifier
+        const customerId = bill.customerPhone;
+        
+        if (!customerId) {
+            console.warn("Billing record missing customer phone:", bill);
+            return; // Skip this record
+        }
+        
+        if (!customerMap.has(customerId)) {
+            // Initialize new customer
+            customerMap.set(customerId, {
+                id: customerId, // Using phone as ID
+                name: bill.customerName || 'Unknown',
+                phone: bill.customerPhone,
+                email: bill.customerEmail || 'N/A',
+                address: bill.customerAddress || 'N/A',
+                orders: [],
+                totalSpent: 0,
+                lastOrderDate: new Date(bill.invoiceDate || bill.createdAt)
+            });
+        }
+        
+        // Get the customer object
+        const customer = customerMap.get(customerId);
+        
+        // Calculate total from items
+        const orderTotal = bill.grandTotal || 
+            (bill.items && Array.isArray(bill.items) ? 
+                bill.items.reduce((sum, item) => sum + (item.total || 0), 0) : 0);
+        
+        // Add this bill to the customer's orders
+        customer.orders.push({
+            invoiceNo: bill.invoiceNo,
+            date: new Date(bill.invoiceDate || bill.createdAt),
+            items: bill.items || [],
+            total: orderTotal,
+            status: bill.paymentStatus
+        });
+        
+        // Update total spent
+        customer.totalSpent += orderTotal;
+        
+        // Update last order date if this order is more recent
+        const billDate = new Date(bill.invoiceDate || bill.createdAt);
+        if (billDate > customer.lastOrderDate) {
+            customer.lastOrderDate = billDate;
+        }
+    });
+    
+    // Convert map to array
+    customers = Array.from(customerMap.values());
+    
+    // Log for debugging
+    console.log("Processed customers:", customers.length);
+    if (customers.length > 0) {
+        console.log("Sample customer data:", customers[0]);
+    }
+    
+    // Sort customers by last order date (most recent first)
+    customers.sort((a, b) => b.lastOrderDate - a.lastOrderDate);
+    
+    // Initialize filtered customers
+    filteredCustomers = [...customers];
+    
+    // Update total pages
+    totalPages = Math.ceil(customers.length / pageSize);
+    
+    // Update pagination controls
+    updatePaginationControls();
+    
+    // Update customer stats
+    updateCustomerStats();
+    
+    // Render the current page
+    renderCustomersPage();
+}
+
+// Fix the setupSearch function
+function setupSearch() {
+    const searchInput = document.getElementById('customer-search');
+    if (searchInput) {
+        searchInput.addEventListener('input', debounce(() => {
+            const query = searchInput.value.trim().toLowerCase();
+            
+            console.log("Searching for:", query);
+            
+            if (query === '') {
+                // Reset to full list
+                filteredCustomers = [...customers];
+            } else {
+                // Filter customers with improved error handling
+                filteredCustomers = customers.filter(customer => {
+                    if (!customer) return false;
+                    
+                    // Check each field with null/undefined protection
+                    const nameMatch = customer.name && 
+                        customer.name.toLowerCase().includes(query);
+                    const phoneMatch = customer.phone && 
+                        customer.phone.toLowerCase().includes(query);
+                    const emailMatch = customer.email && customer.email !== 'N/A' && 
+                        customer.email.toLowerCase().includes(query);
+                    
+                    return nameMatch || phoneMatch || emailMatch;
+                });
+                
+                console.log("Found matching customers:", filteredCustomers.length);
+            }
+            
+            // Reset to first page
+            currentPage = 1;
+            
+            // Update total pages
+            totalPages = Math.ceil(filteredCustomers.length / pageSize);
+            
+            // Update pagination controls
+            updatePaginationControls();
+            
+            // Render the current page
+            renderCustomersPage();
+        }, 300));
+    }
+}
+
+// Fix the setupFilters function for payment status filtering
+function setupFilters() {
+    const paymentFilter = document.getElementById('payment-filter');
+    const applyFilterBtn = document.getElementById('apply-filter');
+    const resetFilterBtn = document.getElementById('reset-filter');
+    
+    if (applyFilterBtn) {
+        applyFilterBtn.addEventListener('click', () => {
+            // Get selected payment status
+            const paymentStatus = paymentFilter.value;
+            
+            console.log("Applying filter:", paymentStatus);
+            
+            if (paymentStatus === 'all') {
+                // Reset to full list
+                filteredCustomers = [...customers];
+            } else {
+                // Filter customers based on their orders' payment status
+                filteredCustomers = customers.filter(customer => {
+                    // Check if customer has any orders
+                    if (!customer.orders || customer.orders.length === 0) return false;
+                    
+                    // Return true if any order has the selected status
+                    return customer.orders.some(order => order.status === paymentStatus);
+                });
+                
+                console.log("Found customers with payment status:", paymentStatus, filteredCustomers.length);
+            }
+            
+            // Reset to first page
+            currentPage = 1;
+            
+            // Update total pages
+            totalPages = Math.ceil(filteredCustomers.length / pageSize);
+            
+            // Update pagination controls
+            updatePaginationControls();
+            
+            // Render the current page
+            renderCustomersPage();
+        });
+    }
+    
+    if (resetFilterBtn) {
+        resetFilterBtn.addEventListener('click', () => {
+            // Reset payment filter dropdown
+            paymentFilter.value = 'all';
+            
+            // Reset search input
+            document.getElementById('customer-search').value = '';
+            
+            // Reset to full list
+            filteredCustomers = [...customers];
+            
+            // Reset to first page
+            currentPage = 1;
+            
+            // Update total pages
+            totalPages = Math.ceil(filteredCustomers.length / pageSize);
+            
+            // Update pagination controls
+            updatePaginationControls();
+            
+            // Render the current page
+            renderCustomersPage();
+            
+            console.log("Filters reset");
+        });
+    }
+}
+
+// Add a debugging function
+function debugCustomerData() {
+    console.log("Total customers loaded:", customers.length);
+    
+    if (customers.length > 0) {
+        // Log a sample customer to check structure
+        console.log("Sample customer data:", customers[0]);
+        
+        // Check order data structure if available
+        if (customers[0].orders && customers[0].orders.length > 0) {
+            console.log("Sample order data:", customers[0].orders[0]);
+        }
+    }
+    
+    // Check what payment status values exist in the data
+    const paymentStatuses = new Set();
+    customers.forEach(customer => {
+        if (customer.orders && customer.orders.length > 0) {
+            customer.orders.forEach(order => {
+                if (order.status) paymentStatuses.add(order.status);
+            });
+        }
+    });
+    
+    console.log("Payment statuses found in data:", Array.from(paymentStatuses));
+}
+
+// Update your init function to include debugging
+async function init() {
+    fetchProfile();
+    setupNotifications();
+    
+    // Fetch and process billing data
+    await fetchBillingData();
+    
+    // Debug customer data after processing
+    debugCustomerData();
+    
+    // Setup UI interactions
+    setupPagination();
+    setupSearch();
+    setupFilters();
+    setupExport();
+    setupPrint();
+    setupTableActions();
+    setupModal();
+    setupSorting();
+}
+// Fetch all billing data to extract customers
+async function fetchBillingData() {
+    const token = checkLogin();
+    try {
+        const response = await fetch(`${BASE_URL}/api/billing`, {
+            headers: { 
+                "Authorization": `Bearer ${token}`,
+                "Content-Type": "application/json"
+            },
+        });
+        if (!response.ok) throw new Error("Failed to fetch billing data");
+        
+        const data = await response.json();
+        
+        // Extract records from the response
+        const billingData = data.records || [];
+        
+        // Log data for debugging
+        console.log("Billing data received, count:", billingData.length);
+        if (billingData.length > 0) {
+            console.log("Sample billing record:", billingData[0]);
+        }
+        
+        processCustomers(billingData);
+        return billingData;
+    } catch (error) {
+        console.error("Error fetching billing data:", error);
+        displayMessage(error.message);
+        return [];
+    }
+}
+
+// Process billing data to extract unique customers with improved structure handling
+function processCustomers(billingData) {
+    // Create a map to track unique customers and their orders
+    const customerMap = new Map();
+    
+    billingData.forEach(bill => {
+        // Use phone as unique identifier
+        const customerId = bill.customerPhone;
+        
+        if (!customerId) {
+            console.warn("Billing record missing customer phone:", bill);
+            return; // Skip this record
+        }
+        
+        if (!customerMap.has(customerId)) {
+            // Initialize new customer
+            customerMap.set(customerId, {
+                id: customerId, // Using phone as ID
+                name: bill.customerName || 'Unknown',
+                phone: bill.customerPhone,
+                email: bill.customerEmail || 'N/A',
+                address: bill.customerAddress || 'N/A',
+                orders: [],
+                totalSpent: 0,
+                lastOrderDate: new Date(bill.invoiceDate || bill.createdAt)
+            });
+        }
+        
+        // Get the customer object
+        const customer = customerMap.get(customerId);
+        
+        // Calculate total from items
+        const orderTotal = bill.grandTotal || 
+            (bill.items && Array.isArray(bill.items) ? 
+                bill.items.reduce((sum, item) => sum + (item.total || 0), 0) : 0);
+        
+        // Add this bill to the customer's orders
+        customer.orders.push({
+            invoiceNo: bill.invoiceNo,
+            date: new Date(bill.invoiceDate || bill.createdAt),
+            items: bill.items || [],
+            total: orderTotal,
+            status: bill.paymentStatus
+        });
+        
+        // Update total spent
+        customer.totalSpent += orderTotal;
+        
+        // Update last order date if this order is more recent
+        const billDate = new Date(bill.invoiceDate || bill.createdAt);
+        if (billDate > customer.lastOrderDate) {
+            customer.lastOrderDate = billDate;
+        }
+    });
+    
+    // Convert map to array
+    customers = Array.from(customerMap.values());
+    
+    // Log for debugging
+    console.log("Processed customers:", customers.length);
+    if (customers.length > 0) {
+        console.log("Sample customer data:", customers[0]);
+    }
+    
+    // Sort customers by last order date (most recent first)
+    customers.sort((a, b) => b.lastOrderDate - a.lastOrderDate);
+    
+    // Initialize filtered customers
+    filteredCustomers = [...customers];
+    
+    // Update total pages
+    totalPages = Math.ceil(customers.length / pageSize);
+    
+    // Update pagination controls
+    updatePaginationControls();
+    
+    // Update customer stats
+    updateCustomerStats();
+    
+    // Render the current page
+    renderCustomersPage();
+}
+
+// Fix the setupSearch function
+function setupSearch() {
+    const searchInput = document.getElementById('customer-search');
+    if (searchInput) {
+        searchInput.addEventListener('input', debounce(() => {
+            const query = searchInput.value.trim().toLowerCase();
+            
+            console.log("Searching for:", query);
+            
+            if (query === '') {
+                // Reset to full list
+                filteredCustomers = [...customers];
+            } else {
+                // Filter customers with improved error handling
+                filteredCustomers = customers.filter(customer => {
+                    if (!customer) return false;
+                    
+                    // Check each field with null/undefined protection
+                    const nameMatch = customer.name && 
+                        customer.name.toLowerCase().includes(query);
+                    const phoneMatch = customer.phone && 
+                        customer.phone.toLowerCase().includes(query);
+                    const emailMatch = customer.email && customer.email !== 'N/A' && 
+                        customer.email.toLowerCase().includes(query);
+                    
+                    return nameMatch || phoneMatch || emailMatch;
+                });
+                
+                console.log("Found matching customers:", filteredCustomers.length);
+            }
+            
+            // Reset to first page
+            currentPage = 1;
+            
+            // Update total pages
+            totalPages = Math.ceil(filteredCustomers.length / pageSize);
+            
+            // Update pagination controls
+            updatePaginationControls();
+            
+            // Render the current page
+            renderCustomersPage();
+        }, 300));
+    }
+}
+
+// Fix the setupFilters function for payment status filtering
+function setupFilters() {
+    const paymentFilter = document.getElementById('payment-filter');
+    const applyFilterBtn = document.getElementById('apply-filter');
+    const resetFilterBtn = document.getElementById('reset-filter');
+    
+    if (applyFilterBtn) {
+        applyFilterBtn.addEventListener('click', () => {
+            // Get selected payment status
+            const paymentStatus = paymentFilter.value;
+            
+            console.log("Applying filter:", paymentStatus);
+            
+            if (paymentStatus === 'all') {
+                // Reset to full list
+                filteredCustomers = [...customers];
+            } else {
+                // Filter customers based on their orders' payment status
+                filteredCustomers = customers.filter(customer => {
+                    // Check if customer has any orders
+                    if (!customer.orders || customer.orders.length === 0) return false;
+                    
+                    // Return true if any order has the selected status
+                    return customer.orders.some(order => order.status === paymentStatus);
+                });
+                
+                console.log("Found customers with payment status:", paymentStatus, filteredCustomers.length);
+            }
+            
+            // Reset to first page
+            currentPage = 1;
+            
+            // Update total pages
+            totalPages = Math.ceil(filteredCustomers.length / pageSize);
+            
+            // Update pagination controls
+            updatePaginationControls();
+            
+            // Render the current page
+            renderCustomersPage();
+        });
+    }
+    
+    if (resetFilterBtn) {
+        resetFilterBtn.addEventListener('click', () => {
+            // Reset payment filter dropdown
+            paymentFilter.value = 'all';
+            
+            // Reset search input
+            document.getElementById('customer-search').value = '';
+            
+            // Reset to full list
+            filteredCustomers = [...customers];
+            
+            // Reset to first page
+            currentPage = 1;
+            
+            // Update total pages
+            totalPages = Math.ceil(filteredCustomers.length / pageSize);
+            
+            // Update pagination controls
+            updatePaginationControls();
+            
+            // Render the current page
+            renderCustomersPage();
+            
+            console.log("Filters reset");
+        });
+    }
+}
+
+// Add a debugging function
+function debugCustomerData() {
+    console.log("Total customers loaded:", customers.length);
+    
+    if (customers.length > 0) {
+        // Log a sample customer to check structure
+        console.log("Sample customer data:", customers[0]);
+        
+        // Check order data structure if available
+        if (customers[0].orders && customers[0].orders.length > 0) {
+            console.log("Sample order data:", customers[0].orders[0]);
+        }
+    }
+    
+    // Check what payment status values exist in the data
+    const paymentStatuses = new Set();
+    customers.forEach(customer => {
+        if (customer.orders && customer.orders.length > 0) {
+            customer.orders.forEach(order => {
+                if (order.status) paymentStatuses.add(order.status);
+            });
+        }
+    });
+    
+    console.log("Payment statuses found in data:", Array.from(paymentStatuses));
+}
+
+// Update your init function to include debugging
+async function init() {
+    fetchProfile();
+    setupNotifications();
+    
+    // Fetch and process billing data
+    await fetchBillingData();
+    
+    // Debug customer data after processing
+    debugCustomerData();
+    
+    // Setup UI interactions
+    setupPagination();
+    setupSearch();
+    setupFilters();
+    setupExport();
+    setupPrint();
+    setupTableActions();
+    setupModal();
+    setupSorting();
+}
+
     // Initialize the page
     async function init() {
         fetchProfile();

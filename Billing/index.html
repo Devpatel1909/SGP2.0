@@ -21,7 +21,7 @@
                     <li class="active"><a href="../billing/index.html"><i class="fas fa-file-invoice"></i><span>Billing</span></a></li>
                     <li><a href="../customer/customer.html"><i class="fas fa-users"></i><span>Customers</span></a></li>
                     <li><a href="../inventory/index.html"><i class="fas fa-warehouse"></i><span>Inventory</span></a></li>
-                    <li><a href="../settings/index.html"><i class="fas fa-cog"></i><span>Settings</span></a></li>
+                    <!-- <li><a href="../settings/index.html"><i class="fas fa-cog"></i><span>Settings</span></a></li> -->
                 </ul>
             </aside>
 
@@ -68,8 +68,9 @@
                                 </div>
                                 <div class="info-group">
                                     <label for="invoice-no">Invoice No:</label>
-                                    <input type="text" id="invoice-no" value="INV-2024-001" readonly>
+                                    <input type="text" id="invoice-no" readonly>
                                 </div>
+                                
                                 <div class="info-group">
                                     <label for="cashier">Cashier:</label>
                                     <input type="text" id="cashier-name" value="Guest" readonly>
@@ -87,13 +88,23 @@
                                 <input type="text" id="customer-name" placeholder="Enter customer name" required>
                             </div>
                             <div class="form-group">
-                                <label for="customer-email">Email</label>
-                                <input type="email" id="customer-email" placeholder="Enter email">
-                            </div>
-                            <div class="form-group">
                                 <label for="customer-phone">Phone</label>
-                                <input type="tel" id="customer-phone" placeholder="Enter phone number" required>
+                                <input type="tel" id="customer-phone" 
+                                       pattern="[6-9]\d{9}" 
+                                       title="Valid Indian phone number (10 digits starting with 6-9)"
+                                       required>
+                                <div class="error-message" id="phone-error" aria-live="polite"></div>
                             </div>
+                            
+                            <!-- Email Validation -->
+                            <div class="form-group">
+                                <label for="customer-email">Email</label>
+                                <input type="email" id="customer-email" 
+                                       pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,4}$"
+                                       title="Valid email format">
+                                <div class="error-message" id="email-error" aria-live="polite"></div>
+                            </div>
+                            
                             <div class="form-group full-width">
                                 <label for="customer-address">Address</label>
                                 <textarea id="customer-address" placeholder="Enter address" rows="3"></textarea>
@@ -124,7 +135,13 @@
                                             <input type="text" class="product-name" placeholder="Enter name" autocomplete="off" required>
                                             <div class="autocomplete-suggestions" style="display: none;"></div>
                                         </td>
-                                        <td><input type="text" class="product-id" placeholder="Enter ID" required></td>
+                                        <td>
+                                            <input type="text" class="product-id" 
+                                                   readonly
+                                                   data-original-id=""
+                                                   aria-label="Product ID (immutable)">
+                                            <i class="fas fa-lock id-lock" title="ID cannot be modified"></i>
+                                        </td>
                                         <td>
                                             <input type="number" class="item-price" value="0.00" step="0.01" readonly>
                                         </td>

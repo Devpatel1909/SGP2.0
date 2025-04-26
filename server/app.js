@@ -7,7 +7,9 @@ import cors from "cors";
 import axios from "axios";
 import User from './models/User.js';
 import Billing from './models/Billing.js';
+import InvoiceCounter from './models/invoice_counter.js';
 import { OAuth2Client } from 'google-auth-library';
+import { getNextInvoiceNumber } from './utils/invoice_generator.js';
 
 dotenv.config();
 
@@ -18,7 +20,6 @@ const PORT = process.env.PORT || 3000;
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 // Improved CORS configuration
-// Update your corsOptions in server.js
 const corsOptions = {
   origin: '*', // For development only - in production, limit to your domain
   credentials: true,
@@ -26,24 +27,23 @@ const corsOptions = {
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Origin', 'Accept']
 };
 
-
-// Also add this before your routes to handle preflight requests
+// Handle preflight requests
 app.options('*', cors(corsOptions));
-
 app.use(cors(corsOptions));
 app.use(express.json());
 
 // MongoDB Connection
 const mongoUrl = process.env.MONGO_URL || "mongodb://localhost:27017/SGP2";
 mongoose
-  .connect(mongoUrl, { useNewUrlParser: true, useUnifiedTopology: true })
+  .connect(mongoUrl)
   .then(() => console.log("Connected to MongoDB"))
   .catch((err) => {
     console.error("Database connection error:", err);
     process.exit(1);
   });
 
- app.get('/api/healthcheck', (req, res) => {
+// Health check endpoint
+app.get('/api/healthcheck', (req, res) => {
     res.status(200).json({ message: 'Server is healthy' });
 });
 
@@ -63,11 +63,72 @@ const verifyToken = (req, res, next) => {
   });
 };
 
+// -------------- INVOICE ROUTES --------------
 
-// Add these routes to your server.js file
+// Route to get a new unique invoice number
+app.get('/api/invoices/new', verifyToken, async (req, res) => {
+    try {
+        const invoiceNo = await getNextInvoiceNumber();
+        res.json({ invoiceNo });
+    } catch (error) {
+        console.error('Error generating new invoice number:', error);
+        res.status(500).json({ message: "Failed to generate invoice number" });
+    }
+});
+
+// Route to get the last used invoice number
+app.get('/api/invoices/last', verifyToken, async (req, res) => {
+    try {
+        // Find the latest invoice
+        const latestInvoice = await Billing.findOne({ isDraft: { $ne: true } })
+            .sort({ createdAt: -1 })
+            .limit(1);
+        
+        if (latestInvoice) {
+            res.json({ lastInvoiceNumber: latestInvoice.invoiceNo });
+        } else {
+            // If no invoices exist yet, get a new one
+            const invoiceNo = await getNextInvoiceNumber();
+            res.json({ lastInvoiceNumber: invoiceNo });
+        }
+    } catch (error) {
+        console.error('Error fetching last invoice number:', error);
+        res.status(500).json({ message: "Failed to fetch last invoice number" });
+    }
+});
+
+// Route to update the counter (for debugging or admin purposes)
+app.post('/api/invoices/update-counter', verifyToken, async (req, res) => {
+    try {
+        const { lastInvoiceNumber } = req.body;
+        
+        // Extract sequence number from the invoice number
+        const matches = lastInvoiceNumber.match(/INV-\d+-(\d+)/);
+        if (!matches || matches.length < 2) {
+            return res.status(400).json({
+                message: "Invalid invoice number format. Expected format: INV-YYYY-#####"
+            });
+        }
+        
+        const seq = parseInt(matches[1]);
+        
+        // Update the counter
+        await InvoiceCounter.findOneAndUpdate(
+            { _id: 'invoiceNo' },
+            { seq },
+            { upsert: true }
+        );
+        
+        res.json({ message: "Counter updated successfully", value: seq });
+    } catch (error) {
+        console.error('Error updating invoice counter:', error);
+        res.status(500).json({ message: "Failed to update counter" });
+    }
+});
+
+// -------------- AUTH ROUTES --------------
 
 // Google OAuth callback handler
-// In your Express backend
 app.get('/auth/google/callback', async (req, res) => {
   const { code, state } = req.query;
   
@@ -125,8 +186,7 @@ app.get('/auth/google/callback', async (req, res) => {
   }
 });
 
-
-// GitHub OAuth callback handler (similar approach)
+// GitHub OAuth callback handler
 app.get('/auth/github/callback', (req, res) => {
   const code = req.query.code;
   const state = req.query.state;
@@ -138,9 +198,7 @@ app.get('/auth/github/callback', (req, res) => {
   res.redirect(`/login/login.html?code=${code}&state=${state}&provider=github`);
 });
 
-
-
-
+// Google auth redirect
 app.get('/auth/google/', (req, res) => {
   const authUrl = googleClient.generateAuthUrl({
       access_type: 'offline',
@@ -150,12 +208,13 @@ app.get('/auth/google/', (req, res) => {
   res.redirect(authUrl);
 });
 
-// Google OAuth Authentication - Updated for better error handling
+// Google OAuth Authentication
 app.post("/api/auth/google", async (req, res) => {
-  // Add these headers
+  // Add CORS headers
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  
   const { token, authType } = req.body;
   
   if (!token) {
@@ -368,6 +427,8 @@ app.post("/api/login", async (req, res) => {
   }
 });
 
+// -------------- PROFILE ROUTES --------------
+
 // Get User Profile
 app.get("/api/profile", verifyToken, async (req, res) => {
   try {
@@ -386,6 +447,8 @@ app.get("/api/profile", verifyToken, async (req, res) => {
     res.status(500).json({ message: "Error fetching profile" });
   }
 });
+
+// -------------- ITEM ROUTES --------------
 
 // Add Item
 app.post("/api/items", verifyToken, async (req, res) => {
@@ -489,6 +552,9 @@ app.delete("/api/items/:id", verifyToken, async (req, res) => {
     res.status(500).json({ message: "Error deleting item" });
   }
 });
+
+// -------------- BILLING ROUTES --------------
+
 // Get Billing Data
 app.get("/api/billing/:billId", verifyToken, async (req, res) => {
   try {
@@ -503,7 +569,7 @@ app.get("/api/billing/:billId", verifyToken, async (req, res) => {
   }
 });
 
-
+// Get All Billing Data
 app.get("/api/billing", verifyToken, async (req, res) => {
   try {
     // Get pagination parameters from query string
@@ -536,9 +602,8 @@ app.get("/api/billing", verifyToken, async (req, res) => {
   }
 });
 
-
-// Endpoint to get suggestions based on item names
-app.get('/api/items/suggestions', async (req, res) => {
+// Get Item Suggestions
+app.get('/api/items/suggestions', verifyToken, async (req, res) => {
   const query = req.query.query || '';
 
   try {
@@ -573,51 +638,136 @@ app.get('/api/items/suggestions', async (req, res) => {
   }
 });
 
-app.post('/api/billing', async (req, res) => {
+// Create New Billing
+app.post('/api/billing', verifyToken, async (req, res) => {
   const {
-      customerName,
-      customerPhone,  
-      customerEmail,
-      customerAddress,
-      invoiceDate,
-      invoiceNo,
-      paymentMethod,
-      paymentStatus,
-      paymentNote,
-      items
+    customerName,
+    customerPhone,  
+    customerEmail,
+    customerAddress,
+    invoiceDate,
+    invoiceNo,
+    paymentMethod,
+    paymentStatus,
+    paymentNote,
+    items
   } = req.body;
 
   // Basic validation
-  if (!customerName || !customerPhone || !invoiceNo || !paymentMethod || !paymentStatus || !items || items.length === 0) {
-      return res.status(400).json({ message: 'Please fill in all required fields and add at least one product.' });
+  if (!customerName || !customerPhone || !paymentMethod || !paymentStatus || !items || items.length === 0) {
+    return res.status(400).json({ message: 'Please fill in all required fields and add at least one product.' });
   }
 
   try {
-      // Generate a unique bill_id
-      const bill_id = 'BILL-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
+    // Generate a unique invoice number if not provided
+    let finalInvoiceNo = invoiceNo;
+    if (!finalInvoiceNo) {
+      finalInvoiceNo = await getNextInvoiceNumber();
+    }
+    
+    // Generate a unique bill_id
+    const bill_id = 'BILL-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
+    
+    // Calculate grand total
+    const grandTotal = items.reduce((total, item) => total + (parseFloat(item.total) || 0), 0);
 
-      const billingData = new Billing({
-          customerName,
-          customerPhone,
-          customerEmail,
-          customerAddress,
-          invoiceDate,
-          invoiceNo,
-          paymentMethod,
-          paymentStatus,
-          paymentNote,
-          items,
-          bill_id
-      });
+    const billingData = new Billing({
+      customerName,
+      customerPhone,
+      customerEmail,
+      customerAddress,
+      invoiceDate,
+      invoiceNo: finalInvoiceNo,
+      paymentMethod,
+      paymentStatus,
+      paymentNote,
+      items,
+      bill_id,
+      grandTotal
+    });
 
-      await billingData.save();
-      res.status(201).json({ message: 'Billing data saved successfully!', billingData });
+    await billingData.save();
+    res.status(201).json({ 
+      message: 'Billing data saved successfully!', 
+      billingData 
+    });
   } catch (error) {
-      console.error('Error saving billing data:', error);
-      res.status(500).json({ message: 'Failed to save billing data.', error: error.message });
+    console.error('Error saving billing data:', error);
+    
+    // Check for duplicate invoice number error
+    if (error.code === 11000 && error.keyPattern && error.keyPattern.invoiceNo) {
+      // Try with a new invoice number
+      try {
+        const newInvoiceNo = await getNextInvoiceNumber();
+        return res.status(409).json({ 
+          message: 'Invoice number already exists. Try again with the suggested invoice number.',
+          suggestedInvoiceNo: newInvoiceNo
+        });
+      } catch (newError) {
+        return res.status(500).json({ 
+          message: 'Failed to generate a new invoice number.', 
+          error: newError.message 
+        });
+      }
+    }
+    
+    res.status(500).json({ 
+      message: 'Failed to save billing data.', 
+      error: error.message 
+    });
   }
 });
-// Add this to your server.js file after your existing routes
+
+// Save draft invoices
+app.post('/api/billing/drafts', verifyToken, async (req, res) => {
+  try {
+    const draftData = req.body;
+    draftData.isDraft = true;
+    
+    // Add draft suffix if not already present
+    if (!draftData.invoiceNo.includes('-DRAFT')) {
+      draftData.invoiceNo += '-DRAFT';
+    }
+    
+    // Generate a unique bill_id if not provided
+    if (!draftData.bill_id) {
+      draftData.bill_id = 'DRAFT-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
+    }
+    
+    // Check if draft already exists
+    let draft = await Billing.findOne({ invoiceNo: draftData.invoiceNo });
+    
+    if (draft) {
+      // Update existing draft
+      Object.assign(draft, draftData);
+      await draft.save();
+    } else {
+      // Create new draft
+      draft = new Billing(draftData);
+      await draft.save();
+    }
+    
+    res.status(201).json(draft);
+  } catch (error) {
+    console.error('Error saving draft:', error);
+    res.status(500).json({ message: "Failed to save draft" });
+  }
+});
+
+// Get all drafts
+app.get('/api/billing/drafts', verifyToken, async (req, res) => {
+  try {
+    const drafts = await Billing.find({ isDraft: true })
+      .sort({ updatedAt: -1 });
+    
+    res.json(drafts);
+  } catch (error) {
+    console.error('Error fetching drafts:', error);
+    res.status(500).json({ message: "Failed to fetch drafts" });
+  }
+});
+
+// -------------- DASHBOARD ROUTES --------------
 
 // Get Dashboard Metrics
 app.get("/api/dashboard/metrics", verifyToken, async (req, res) => {
@@ -634,7 +784,8 @@ app.get("/api/dashboard/metrics", verifyToken, async (req, res) => {
     const currentPeriodSales = await Billing.aggregate([
       { 
         $match: { 
-          createdAt: { $gte: thirtyDaysAgo }
+          createdAt: { $gte: thirtyDaysAgo },
+          isDraft: { $ne: true }
         } 
       },
       {
@@ -649,7 +800,8 @@ app.get("/api/dashboard/metrics", verifyToken, async (req, res) => {
     const previousPeriodSales = await Billing.aggregate([
       { 
         $match: { 
-          createdAt: { $gte: sixtyDaysAgo, $lt: thirtyDaysAgo }
+          createdAt: { $gte: sixtyDaysAgo, $lt: thirtyDaysAgo },
+          isDraft: { $ne: true }
         } 
       },
       {
@@ -667,12 +819,14 @@ app.get("/api/dashboard/metrics", verifyToken, async (req, res) => {
     
     // Get total orders count for current period
     const currentPeriodOrdersCount = await Billing.countDocuments({
-      createdAt: { $gte: thirtyDaysAgo }
+      createdAt: { $gte: thirtyDaysAgo },
+      isDraft: { $ne: true }
     });
     
     // Get total orders count for previous period
     const previousPeriodOrdersCount = await Billing.countDocuments({
-      createdAt: { $gte: sixtyDaysAgo, $lt: thirtyDaysAgo }
+      createdAt: { $gte: sixtyDaysAgo, $lt: thirtyDaysAgo },
+      isDraft: { $ne: true }
     });
     
     // Calculate orders percentage change
@@ -706,8 +860,6 @@ app.get("/api/dashboard/metrics", verifyToken, async (req, res) => {
     res.status(500).json({ message: "Error fetching dashboard metrics" });
   }
 });
-
-// Get Monthly Sales Data for Chart
 app.get("/api/dashboard/sales-chart", verifyToken, async (req, res) => {
   try {
     // Get current year
@@ -720,7 +872,8 @@ app.get("/api/dashboard/sales-chart", verifyToken, async (req, res) => {
           invoiceDate: {
             $gte: new Date(`${currentYear}-01-01`),
             $lte: new Date(`${currentYear}-12-31`)
-          }
+          },
+          isDraft: { $ne: true }
         }
       },
       {
@@ -757,6 +910,7 @@ app.get("/api/dashboard/top-products", verifyToken, async (req, res) => {
   try {
     // Aggregate all items from billing records and count quantities
     const topProducts = await Billing.aggregate([
+      { $match: { isDraft: { $ne: true } } },
       { $unwind: "$items" },
       {
         $group: {

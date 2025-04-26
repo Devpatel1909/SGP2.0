@@ -815,7 +815,21 @@ function updateRowTotal(row) {
     
 
     async function fetchLastInvoiceNumber() {
+        console.log("Fetching last invoice number...");
+        
+        // First check localStorage for cached invoice number
+        const cachedInvoiceNo = localStorage.getItem("lastInvoiceNumber");
+        if (cachedInvoiceNo) {
+            console.log("Using cached invoice number from localStorage:", cachedInvoiceNo);
+            return cachedInvoiceNo;
+        }
+
         const token = localStorage.getItem("token");
+        if (!token) {
+            console.warn("No auth token found, using default invoice number");
+            return "INV-1000";
+        }
+        
         try {
             const response = await fetch(`${BASE_URL}/api/invoices/last`, {
                 headers: {
@@ -823,15 +837,25 @@ function updateRowTotal(row) {
                     "Content-Type": "application/json"
                 }
             });
+            if (!response.ok) {
+                console.warn(`API returned status ${response.status}`);
+                throw new Error("Failed to fetch last invoice number");
+            }
 
-            if (!response.ok) throw new Error("Failed to fetch last invoice number");
-
-            const { lastInvoiceNumber } = await response.json();
+            const data = await response.json();
+            const lastInvoiceNumber = data.lastInvoiceNumber;
+            
+            console.log("API returned last invoice number:", lastInvoiceNumber);
+            
+            // Cache the result in localStorage
+            if (lastInvoiceNumber) {
+                localStorage.setItem("lastInvoiceNumber", lastInvoiceNumber);
+            }
+            
             return lastInvoiceNumber;
         } catch (error) {
             console.error("Error fetching last invoice number:", error);
-            displayMessage(error.message);
-            return null; // Return null if there's an error
+            return "INV-1000"; // Return a default starting number if all else fails
         }
     }
     
@@ -955,80 +979,295 @@ function updateRowTotal(row) {
         return row;
     }
 
-    function updateTotals() {
-        const rows = document.querySelectorAll("#bill-items tr");
-        let subtotal = 0;
+  // Improved updateTotals function with better calculation
+function updateTotals() {
+    const rows = document.querySelectorAll("#bill-items tr");
+    let subtotal = 0;
 
-        rows.forEach(row => {
+    // Calculate row totals and sum them for subtotal
+    rows.forEach(row => {
+        const price = parseFloat(row.querySelector(".item-price").value) || 0;
+        const quantity = parseInt(row.querySelector(".item-quantity").value) || 0;
+        const itemTotal = price * quantity;
+
+        // Update the row total display
+        row.querySelector(".item-total").textContent = `₹${itemTotal.toFixed(2)}`;
+        
+        // Add to subtotal only if this is a valid item (has an ID)
+        if (row.querySelector(".product-id").value.trim() !== "") {
+            subtotal += itemTotal;
+        }
+    });
+
+    // Calculate tax and grand total
+    const tax = subtotal * 0.10; // 10% tax
+    const grandTotal = subtotal + tax;
+
+    // Update the displayed totals
+    const subtotalElement = document.getElementById("subtotal");
+    const taxElement = document.getElementById("tax");
+    const grandTotalElement = document.getElementById("grand-total");
+    
+    if (subtotalElement) subtotalElement.textContent = `₹${subtotal.toFixed(2)}`;
+    if (taxElement) taxElement.textContent = `₹${tax.toFixed(2)}`;
+    if (grandTotalElement) grandTotalElement.textContent = `₹${grandTotal.toFixed(2)}`;
+    
+    console.log(`Totals updated: Subtotal=${subtotal.toFixed(2)}, Tax=${tax.toFixed(2)}, Total=${grandTotal.toFixed(2)}`);
+}
+
+// Improved collectInvoiceData function with better calculation
+function collectInvoiceData() {
+    console.log("Collecting invoice data from form...");
+    
+    // Calculate totals from displayed values
+    const subtotalElement = document.getElementById("subtotal");
+    const taxElement = document.getElementById("tax");
+    const grandTotalElement = document.getElementById("grand-total");
+    
+    const subtotal = subtotalElement ? parseFloat(subtotalElement.textContent.replace('₹', '')) || 0 : 0;
+    const tax = taxElement ? parseFloat(taxElement.textContent.replace('₹', '')) || 0 : 0;
+    const grandTotal = grandTotalElement ? parseFloat(grandTotalElement.textContent.replace('₹', '')) || 0 : 0;
+    
+    // Get items with proper calculation
+    const rows = document.querySelectorAll("#bill-items tr");
+    const items = [];
+    
+    Array.from(rows).forEach(row => {
+        const productId = row.querySelector(".product-id").value.trim();
+        if (productId !== "") {
+            const name = row.querySelector(".product-name").value;
             const price = parseFloat(row.querySelector(".item-price").value) || 0;
             const quantity = parseInt(row.querySelector(".item-quantity").value) || 0;
-            const itemTotal = price * quantity;
+            
+            // Calculate the item total directly to ensure accuracy
+            const total = price * quantity;
+            
+            // Only add items with positive quantity
+            if (quantity > 0) {
+                items.push({
+                    name: name,
+                    id: productId,
+                    price: price,
+                    quantity: quantity,
+                    total: total
+                });
+            } else {
+                console.warn(`Skipping item ${name} with zero quantity`);
+            }
+        }
+    });
+    
+    console.log(`Collected ${items.length} valid items for billing, Total: ₹${grandTotal.toFixed(2)}`);
+    
+    // Return the full invoice data object
+    return {
+        customerName: document.getElementById("customer-name").value,
+        customerPhone: document.getElementById("customer-phone").value,
+        customerEmail: document.getElementById("customer-email").value || "",
+        customerAddress: document.getElementById("customer-address").value || "",
+        invoiceDate: document.getElementById("invoice-date").value,
+        invoiceNo: document.getElementById("invoice-no").value,
+        cashier: document.getElementById("cashier-name").value,
+        paymentMethod: document.getElementById("payment-method").value,
+        paymentStatus: document.getElementById("payment-status").value,
+        paymentNote: document.getElementById("payment-note").value || "",
+        items: items,
+        subtotal: subtotal,
+        tax: tax,
+        grandTotal: grandTotal
+    };
+}
 
-            row.querySelector(".item-total").textContent = `₹${itemTotal.toFixed(2)}`;
-            subtotal += itemTotal;
-        });
 
-        const tax = subtotal * 0.10;
-        const grandTotal = subtotal + tax;
 
-        document.getElementById("subtotal").textContent = `₹${subtotal.toFixed(2)}`;
-        document.getElementById("tax").textContent = `₹${tax.toFixed(2)}`;
-        document.getElementById("grand-total").textContent = `₹${grandTotal.toFixed(2)}`;
+
+// Helper function to save billing with specific data (used for retrying with new invoice number)
+async function saveBillingWithData(invoiceData) {
+    const token = localStorage.getItem("token");
+    if (!token) {
+        displayMessage("You must be logged in to create invoices", "error");
+        return;
     }
+    
+    try {
+        // Show a "saving" message
+        displayMessage("Saving invoice with new number...", "info");
+        
+        // Save the invoice to the server
+        const response = await fetch(`${BASE_URL}/api/billing`, {
+            method: "POST",
+            headers: {
+                "Authorization": `Bearer ${token}`,
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(invoiceData)
+        });
+        
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(errorText || "Failed to save invoice with new number");
+        }
+        
+        // Invoice saved successfully - now update inventory
+        console.log("Invoice saved successfully with new number, updating inventory...");
+        displayMessage("Invoice saved, updating inventory...", "info");
+        
+        // Update inventory for this invoice
+        await updateInventoryForInvoice(invoiceData);
+        
+        // Generate next invoice number
+        const nextInvoiceNumber = generateNextInvoiceNumber(invoiceData.invoiceNo);
+        localStorage.setItem("lastInvoiceNumber", nextInvoiceNumber);
+        
+        // Display success message
+        displayMessage("Invoice saved and inventory updated successfully!", "success");
+        
+        // Ask user if they want to create a new invoice
+        const resetForm = confirm("Invoice saved successfully! Clear the form for a new invoice?");
+        if (resetForm) {
+            resetBillingForm(nextInvoiceNumber);
+        } else {
+            // Reload the page after a short delay
+            setTimeout(() => {
+                window.location.reload();
+            }, 1500);
+        }
+        
+    } catch (error) {
+        console.error("Error saving invoice with new number:", error);
+        displayMessage(`Error: ${error.message}`, "error");
+    }
+}
 
-    async function fetchSuggestions(query) {
-        try {
-            const token = localStorage.getItem("token");
-            const response = await fetch(`${BASE_URL}/api/items/suggestions?query=${encodeURIComponent(query)}`, {
-                headers: {
-                    "Authorization": `Bearer ${token}`,
-                    "Content-Type": "application/json"
-                }
-            });
-
-            if (!response.ok) {
-                throw new Error("Failed to fetch suggestions");
+// Function to update inventory specifically for an invoice
+async function updateInventoryForInvoice(invoiceData) {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+    
+    try {
+        // Get current inventory items
+        const inventoryResponse = await fetch(`${BASE_URL}/api/items`, {
+            headers: {
+                "Authorization": `Bearer ${token}`,
+                "Content-Type": "application/json"
             }
-
-            const suggestions = await response.json();
-            
-            // Fetch complete item details for each suggestion to get stock levels
-            const detailedSuggestions = [];
-            for (const suggestion of suggestions) {
-                try {
-                    // Fetch complete item details to get stock quantity
-                    const itemResponse = await fetch(`${BASE_URL}/api/items/${suggestion.id}`, {
-                        headers: {
-                            "Authorization": `Bearer ${token}`,
-                            "Content-Type": "application/json"
-                        }
-                    });
-                    
-                    if (itemResponse.ok) {
-                        const itemDetail = await itemResponse.json();
-                        // Merge suggestion with detailed item info
-                        detailedSuggestions.push({
-                            ...suggestion,
-                            quantity: itemDetail.quantity,
-                            expiry_date: itemDetail.expiry
-                        });
-                    } else {
-                        // If we can't get item details, use the basic suggestion
-                        detailedSuggestions.push(suggestion);
-                    }
-                } catch (itemError) {
-                    console.error("Error fetching item details:", itemError);
-                    detailedSuggestions.push(suggestion);
+        });
+        
+        if (!inventoryResponse.ok) {
+            throw new Error("Failed to fetch current inventory data");
+        }
+        
+        const inventoryItems = await inventoryResponse.json();
+        console.log(`Fetched ${inventoryItems.length} inventory items for update`);
+        
+        // Process each item in the invoice to update inventory
+        let updatedCount = 0;
+        let errorCount = 0;
+        
+        for (const item of invoiceData.items) {
+            try {
+                // Find the matching inventory item
+                const inventoryItem = inventoryItems.find(invItem => 
+                    invItem.id.toString() === item.id.toString());
+                
+                if (!inventoryItem) {
+                    console.error(`Item not found in inventory: ID=${item.id}, Name=${item.name}`);
+                    errorCount++;
+                    continue;
                 }
+                
+                // Calculate new quantity
+                const currentQuantity = inventoryItem.quantity || 0;
+                const billQuantity = item.quantity || 0;
+                const newQuantity = Math.max(0, currentQuantity - billQuantity);
+                
+                console.log(`Updating inventory for ${item.name} (ID: ${item.id})`);
+                console.log(`Current stock: ${currentQuantity}, Bill quantity: ${billQuantity}, New stock: ${newQuantity}`);
+                
+                // Update the inventory via API
+                const updateResponse = await fetch(`${BASE_URL}/api/items/${item.id}`, {
+                    method: "PUT",
+                    headers: {
+                        "Authorization": `Bearer ${token}`,
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        name: inventoryItem.name,
+                        quantity: newQuantity,
+                        price: inventoryItem.price,
+                        profit: inventoryItem.profit || 0,
+                        expiry: inventoryItem.expiry || null
+                    })
+                });
+                
+                if (!updateResponse.ok) {
+                    const errorData = await updateResponse.text();
+                    console.error(`Failed to update inventory for item ${item.name}:`, errorData);
+                    errorCount++;
+                } else {
+                    console.log(`Successfully updated inventory for ${item.name}`);
+                    updatedCount++;
+                }
+            } catch (itemError) {
+                console.error(`Error processing item ${item.name}:`, itemError);
+                errorCount++;
             }
-            
-            return detailedSuggestions;
-        } catch (error) {
-            console.error("Suggestion fetch error:", error);
-            displayMessage(error.message);
-            return [];
+        }
+        
+        console.log(`Inventory update completed: ${updatedCount} items updated, ${errorCount} errors`);
+        
+        if (errorCount > 0) {
+            displayMessage(`Inventory partially updated: ${updatedCount} items updated, ${errorCount} failed`, "warning");
+        } else {
+            displayMessage(`All ${updatedCount} items successfully updated in inventory`, "success");
+        }
+        
+        return { updatedCount, errorCount };
+    } catch (error) {
+        console.error("Error updating inventory:", error);
+        displayMessage("Warning: Invoice was saved but inventory update may be incomplete", "warning");
+        throw error;
+    }
+}
+
+
+// Helper function to update a single row's total with proper calculation
+function updateRowTotal(row) {
+    if (!row) return;
+    
+    // Get the price and quantity inputs
+    const priceInput = row.querySelector(".item-price");
+    const quantityInput = row.querySelector(".item-quantity");
+    const totalCell = row.querySelector(".item-total");
+    
+    if (!priceInput || !quantityInput || !totalCell) return;
+    
+    // Parse values with fallbacks to zero
+    const price = parseFloat(priceInput.value) || 0;
+    const quantity = parseInt(quantityInput.value) || 0;
+    
+    // Calculate the item total
+    const itemTotal = price * quantity;
+    
+    // Update the total display
+    totalCell.textContent = `₹${itemTotal.toFixed(2)}`;
+    
+    // Log for debugging
+    console.log(`Row updated: Price=${price.toFixed(2)}, Quantity=${quantity}, Total=${itemTotal.toFixed(2)}`);
+}
+
+// Make sure we register an event listener for changes to quantity inputs
+document.addEventListener("input", (event) => {
+    // Update row totals when quantity or price changes
+    if (event.target.classList.contains("item-quantity") || event.target.classList.contains("item-price")) {
+        const row = event.target.closest('tr');
+        if (row) {
+            updateRowTotal(row);
+            updateTotals();
         }
     }
+});
+
 
     function updateItemDetails(item, inputElement) {
         const row = inputElement.closest('tr');
@@ -1463,68 +1702,180 @@ function updateRowTotal(row) {
             
             return valid;
         }
-    
-        // Save billing data and update inventory
-       // Save billing data and update inventory
-async function saveBilling() {
-    // Validate form
-    if (!validateBillingForm()) {
-        displayMessage("Please fill in all required fields", "error");
-        return;
-    }
-    
-    // Check for stock issues but allow save with warning
-    if (!validateStockLevels()) {
-        const confirmOverride = confirm("Some items exceed available stock! Do you want to continue anyway?");
-        if (!confirmOverride) {
+        
+        // New function to ensure invoice number is visible
+        function ensureInvoiceNumberIsVisible() {
+            console.log("Ensuring invoice number is visible...");
+            
+            // Check if the invoice number element exists
+            const invoiceNoElement = document.getElementById("invoice-no");
+            if (!invoiceNoElement) {
+                console.error("Invoice number element not found in the DOM!");
+                return;
+            }
+            
+            // If the invoice number is empty, initialize it
+            if (!invoiceNoElement.value || invoiceNoElement.value.trim() === "") {
+                console.log("Invoice number is empty, initializing...");
+                
+                // Try to initialize it
+                initializeInvoiceNumber()
+                    .then(() => {
+                        console.log("Invoice number initialized:", invoiceNoElement.value);
+                    })
+                    .catch(error => {
+                        console.error("Error initializing invoice number:", error);
+                        
+                        // Set a default if initialization fails
+                        invoiceNoElement.value = "INV-" + Math.floor(1000 + Math.random() * 9000);
+                        console.log("Set default invoice number:", invoiceNoElement.value);
+                    });
+            } else {
+                console.log("Invoice number already set:", invoiceNoElement.value);
+            }
+        }
+        
+        // Improved initializeInvoiceNumber function
+async function initializeInvoiceNumber() {
+    console.log("Initializing invoice number...");
+    try {
+        // Try to get a new invoice number from the server first
+        const response = await fetch(`${BASE_URL}/api/invoices/new`, {
+            headers: {
+                "Authorization": `Bearer ${localStorage.getItem("token")}`,
+                "Content-Type": "application/json"
+            }
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            console.log("Got new invoice number from server:", data.invoiceNo);
+            
+            const invoiceNoElement = document.getElementById("invoice-no");
+            if (invoiceNoElement) {
+                invoiceNoElement.value = data.invoiceNo;
+                return;
+            }
+        } else {
+            console.warn("Could not get new invoice from server, falling back to last invoice number");
+        }
+        
+        // Fall back to the previous approach if the server request fails
+        const lastInvoiceNumber = await fetchLastInvoiceNumber();
+        console.log("Got last invoice number:", lastInvoiceNumber);
+        
+        const invoiceNoElement = document.getElementById("invoice-no");
+        if (!invoiceNoElement) {
+            console.error("Invoice number element not found!");
             return;
         }
+        
+        if (lastInvoiceNumber) {
+            // Parse the number portion and increment it
+            let numericPart = 0;
+            let prefix = "";
+            
+            // Extract the numeric part from the invoice number
+            const matches = lastInvoiceNumber.match(/^([A-Za-z-]*)(\d+)$/);
+            if (matches && matches.length >= 3) {
+                prefix = matches[1];
+                numericPart = parseInt(matches[2]) + 1;
+            } else {
+                // If format is different, just increment the whole number if possible
+                numericPart = parseInt(lastInvoiceNumber) + 1;
+                if (isNaN(numericPart)) {
+                    numericPart = 1000; // Default starting number
+                    prefix = "INV-";
+                }
+            }
+            
+            // Set the new invoice number
+            const invoiceNo = `${prefix}${numericPart}`;
+            invoiceNoElement.value = invoiceNo;
+            console.log("Set new invoice number:", invoiceNo);
+        } else {
+            // Set a default invoice number if none was found
+            invoiceNoElement.value = "INV-1000";
+            console.log("Set default invoice number: INV-1000");
+        }
+    } catch (error) {
+        console.error("Error initializing invoice number:", error);
+        
+        // Set a default invoice number in case of error
+        const invoiceNoElement = document.getElementById("invoice-no");
+        if (invoiceNoElement) {
+            invoiceNoElement.value = "INV-1000";
+            console.log("Set default invoice number due to error: INV-1000");
+        }
+    }
+}
+
+
+// Helper function to generate the next invoice number
+function generateNextInvoiceNumber(currentInvoiceNo) {
+    // Parse the current invoice number
+    let prefix = "";
+    let numericPart = 0;
+    
+    // Extract the numeric part from the invoice number
+    const matches = currentInvoiceNo.match(/^([A-Za-z-]*)(\d+)$/);
+    if (matches && matches.length >= 3) {
+        prefix = matches[1];
+        numericPart = parseInt(matches[2]);
+    } else {
+        // If format is different, just use defaults
+        prefix = "INV-";
+        numericPart = 1000;
     }
     
-    const customerName = document.getElementById("customer-name").value;
-    const customerPhone = document.getElementById("customer-phone").value;
-    const paymentMethod = document.getElementById("payment-method").value;
-    const paymentStatus = document.getElementById("payment-status").value;
+    // Increment the numeric part
+    numericPart++;
+    
+    // Create the new invoice number
+    return `${prefix}${numericPart}`;
+}
 
-    const items = Array.from(document.querySelectorAll("#bill-items tr")).filter(row => {
-        return row.querySelector(".product-id").value.trim() !== "";
-    });
+// Helper function to reset the billing form with a new invoice number
+function resetBillingForm(newInvoiceNumber) {
+    // Clear customer information
+    document.getElementById("customer-name").value = "";
+    document.getElementById("customer-phone").value = "";
+    document.getElementById("customer-email").value = "";
+    document.getElementById("customer-address").value = "";
+    
+    // Clear existing items
+    const billItemsContainer = document.getElementById("bill-items");
+    billItemsContainer.innerHTML = "";
+    
+    // Add an empty row
+    addNewRow();
+    
+    // Reset payment information
+    document.getElementById("payment-method").value = "";
+    document.getElementById("payment-status").value = "pending";
+    document.getElementById("payment-note").value = "";
+    
+    // Set the invoice date to today
+    const today = new Date();
+    document.getElementById("invoice-date").value = today.toISOString().split('T')[0];
+    
+    // Set the new invoice number
+    document.getElementById("invoice-no").value = newInvoiceNumber;
+    
+    // Reset totals
+    updateTotals();
+    
+    // Focus on the customer name field
+    document.getElementById("customer-name").focus();
+}
 
-    const token = checkLogin();
-    const invoiceData = {
-        customerName,
-        customerPhone,
-        customerEmail: document.getElementById("customer-email").value,
-        customerAddress: document.getElementById("customer-address").value,
-        invoiceDate: document.getElementById("invoice-date").value,
-        invoiceNo: document.getElementById("invoice-no").value,
-        paymentMethod,
-        paymentStatus,
-        paymentNote: document.getElementById("payment-note").value,
-        items: items.map(row => ({
-            name: row.querySelector(".product-name").value,
-            id: row.querySelector(".product-id").value,
-            price: parseFloat(row.querySelector(".item-price").value) || 0,
-            quantity: parseInt(row.querySelector(".item-quantity").value) || 0,
-            total: parseFloat(row.querySelector(".item-total").textContent.replace('₹', '')) || 0
-        })),
-        updateInventory: true // Flag to tell the server to update inventory quantities
-    };
-
+// Function to update inventory after successful billing save
+async function updateInventoryAfterSave(invoiceData) {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+    
     try {
-        // First save the billing
-        const response = await fetch(`${BASE_URL}/api/billing`, {
-            method: "POST",
-            headers: {
-                "Authorization": `Bearer ${token}`,
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(invoiceData)
-        });
-
-        if (!response.ok) throw new Error("Failed to save invoice data");
-        
-        // Fetch all items first (since we don't have a single item endpoint)
+        // Get current inventory items
         const allItemsResponse = await fetch(`${BASE_URL}/api/items`, {
             headers: {
                 "Authorization": `Bearer ${token}`,
@@ -1538,19 +1889,18 @@ async function saveBilling() {
         
         const allItems = await allItemsResponse.json();
         
-        // Now update inventory quantities for each item
+        // Update each item's quantity
         const updatePromises = invoiceData.items.map(async (item) => {
             try {
-                // Find the item in our full items list
                 const currentItem = allItems.find(i => i.id == item.id);
                 
                 if (!currentItem) {
-                    throw new Error(`Item with ID ${item.id} not found in inventory`);
+                    console.warn(`Item with ID ${item.id} not found in inventory, skipping update`);
+                    return null;
                 }
                 
                 const newQuantity = Math.max(0, currentItem.quantity - item.quantity);
                 
-                // Then update with the new quantity
                 const updateResponse = await fetch(`${BASE_URL}/api/items/${item.id}`, {
                     method: "PUT",
                     headers: {
@@ -1567,25 +1917,23 @@ async function saveBilling() {
                 });
                 
                 if (!updateResponse.ok) {
-                    throw new Error(`Failed to update inventory for item ${item.id}`);
+                    console.warn(`Failed to update inventory for item ${item.id}, continuing with others`);
                 }
                 
-                return updateResponse.json();
+                return updateResponse.ok;
             } catch (error) {
                 console.error(`Error updating inventory for item ${item.id}:`, error);
-                throw error;
+                return false;
             }
         });
         
         // Wait for all inventory updates to complete
         await Promise.all(updatePromises);
-
-        displayMessage("Invoice saved and inventory updated successfully!", "success");
-        setTimeout(() => {
-            window.location.reload();
-        }, 1500);
+        console.log("Inventory updated successfully");
+        
     } catch (error) {
-        displayMessage(error.message);
+        console.error("Error updating inventory:", error);
+        displayMessage("Invoice was saved but inventory update failed", "warning");
     }
 }
 
@@ -2077,15 +2425,14 @@ function updateActionButtons() {
     billingFooter.appendChild(draftsButton);
     billingFooter.appendChild(saveButton);
 }
-// Save billing data and update inventory with invoice number update
 async function saveBilling() {
-    // Existing validation code
+    // STEP 1: Validate the form
     if (!validateBillingForm()) {
         displayMessage("Please fill in all required fields", "error");
         return;
     }
     
-    // Stock validation code remains unchanged
+    // STEP 2: Stock validation with override option
     if (!validateStockLevels()) {
         const confirmOverride = confirm("Some items exceed available stock! Do you want to continue anyway?");
         if (!confirmOverride) {
@@ -2093,39 +2440,23 @@ async function saveBilling() {
         }
     }
     
-    // Collect form data (unchanged)
-    const customerName = document.getElementById("customer-name").value;
-    const customerPhone = document.getElementById("customer-phone").value;
-    const paymentMethod = document.getElementById("payment-method").value;
-    const paymentStatus = document.getElementById("payment-status").value;
-    const invoiceNo = document.getElementById("invoice-no").value;
-
-    const items = Array.from(document.querySelectorAll("#bill-items tr"))
-        .filter(row => row.querySelector(".product-id").value.trim() !== "");
-
-    const token = checkLogin();
-    const invoiceData = {
-        customerName,
-        customerPhone,
-        customerEmail: document.getElementById("customer-email").value,
-        customerAddress: document.getElementById("customer-address").value,
-        invoiceDate: document.getElementById("invoice-date").value,
-        invoiceNo: invoiceNo,
-        paymentMethod,
-        paymentStatus,
-        paymentNote: document.getElementById("payment-note").value,
-        items: items.map(row => ({
-            name: row.querySelector(".product-name").value,
-            id: row.querySelector(".product-id").value,
-            price: parseFloat(row.querySelector(".item-price").value) || 0,
-            quantity: parseInt(row.querySelector(".item-quantity").value) || 0,
-            total: parseFloat(row.querySelector(".item-total").textContent.replace('₹', '')) || 0
-        })),
-        updateInventory: true
-    };
-
+    // STEP 3: Collect the invoice data
+    const invoiceData = collectInvoiceData();
+    console.log("Preparing to save invoice:", invoiceData.invoiceNo);
+    
+    // STEP 4: Get authentication token
+    const token = localStorage.getItem("token");
+    if (!token) {
+        displayMessage("You must be logged in to create invoices", "error");
+        window.location.href = "../login/login.html";
+        return;
+    }
+    
     try {
-        // First save the billing (unchanged)
+        // STEP 5: Show saving message
+        displayMessage("Saving invoice...", "info");
+        
+        // STEP 6: Save the invoice to the server
         const response = await fetch(`${BASE_URL}/api/billing`, {
             method: "POST",
             headers: {
@@ -2134,34 +2465,92 @@ async function saveBilling() {
             },
             body: JSON.stringify(invoiceData)
         });
-
-        if (!response.ok) throw new Error("Failed to save invoice data");
         
-        // Inventory update code remains unchanged
-        const allItemsResponse = await fetch(`${BASE_URL}/api/items`, {
+        // STEP 7: Handle different response types
+        if (!response.ok) {
+            // Try to parse response as JSON
+            let errorData;
+            try {
+                errorData = await response.json();
+            } catch (e) {
+                // If not JSON, get as text
+                const errorText = await response.text();
+                throw new Error(errorText || "Failed to save invoice");
+            }
+            
+            // Handle duplicate invoice number
+            if (response.status === 409) {
+                console.log("Duplicate invoice number detected:", invoiceData.invoiceNo);
+                
+                if (errorData.suggestedInvoiceNo) {
+                    // Update the invoice number in the form
+                    document.getElementById("invoice-no").value = errorData.suggestedInvoiceNo;
+                    
+                    // Ask user if they want to retry with the new number
+                    const confirmRetry = confirm(`Invoice number ${invoiceData.invoiceNo} already exists. Would you like to try again with the new number ${errorData.suggestedInvoiceNo}?`);
+                    
+                    if (confirmRetry) {
+                        // Update the invoice data with the new number
+                        invoiceData.invoiceNo = errorData.suggestedInvoiceNo;
+                        
+                        // Retry with the new invoice number (recursive call)
+                        saveBillingWithData(invoiceData);
+                    }
+                    
+                    return;
+                }
+            }
+            
+            throw new Error(errorData.message || "Failed to save invoice");
+        }
+        
+        // STEP 8: Success - invoice saved
+        const savedData = await response.json();
+        console.log("Invoice saved successfully:", savedData);
+        
+        // STEP 9: Update inventory
+        displayMessage("Invoice saved, updating inventory...", "info");
+        
+        // STEP 10: Get current inventory data
+        const inventoryResponse = await fetch(`${BASE_URL}/api/items`, {
             headers: {
                 "Authorization": `Bearer ${token}`,
                 "Content-Type": "application/json"
             }
         });
         
-        if (!allItemsResponse.ok) {
-            throw new Error("Failed to fetch items for inventory update");
+        if (!inventoryResponse.ok) {
+            throw new Error("Failed to fetch inventory for update");
         }
         
-        const allItems = await allItemsResponse.json();
+        const inventoryItems = await inventoryResponse.json();
+        console.log(`Fetched ${inventoryItems.length} inventory items for update`);
         
-        // Inventory update for each item (unchanged)
-        const updatePromises = invoiceData.items.map(async (item) => {
+        // STEP 11: Update each item in inventory
+        let updatedCount = 0;
+        let errorCount = 0;
+        
+        for (const item of invoiceData.items) {
             try {
-                const currentItem = allItems.find(i => i.id == item.id);
+                // Find corresponding inventory item
+                const inventoryItem = inventoryItems.find(invItem => 
+                    invItem.id.toString() === item.id.toString());
                 
-                if (!currentItem) {
-                    throw new Error(`Item with ID ${item.id} not found in inventory`);
+                if (!inventoryItem) {
+                    console.error(`Item not found in inventory: ID=${item.id}, Name=${item.name}`);
+                    errorCount++;
+                    continue;
                 }
                 
-                const newQuantity = Math.max(0, currentItem.quantity - item.quantity);
+                // Calculate new quantity
+                const currentQuantity = parseInt(inventoryItem.quantity) || 0;
+                const billQuantity = parseInt(item.quantity) || 0;
+                const newQuantity = Math.max(0, currentQuantity - billQuantity);
                 
+                console.log(`Updating inventory for ${item.name} (ID: ${item.id})`);
+                console.log(`Current stock: ${currentQuantity}, Bill quantity: ${billQuantity}, New stock: ${newQuantity}`);
+                
+                // Update the inventory via API
                 const updateResponse = await fetch(`${BASE_URL}/api/items/${item.id}`, {
                     method: "PUT",
                     headers: {
@@ -2169,39 +2558,116 @@ async function saveBilling() {
                         "Content-Type": "application/json"
                     },
                     body: JSON.stringify({
+                        name: inventoryItem.name,
                         quantity: newQuantity,
-                        name: currentItem.name,
-                        price: currentItem.price,
-                        profit: currentItem.profit,
-                        expiry: currentItem.expiry
+                        price: parseFloat(inventoryItem.price),
+                        profit: parseFloat(inventoryItem.profit || 0),
+                        expiry: inventoryItem.expiry || null
                     })
                 });
                 
                 if (!updateResponse.ok) {
-                    throw new Error(`Failed to update inventory for item ${item.id}`);
+                    const errorInfo = await updateResponse.text();
+                    console.error(`Failed to update inventory for item ${item.name}:`, errorInfo);
+                    errorCount++;
+                } else {
+                    console.log(`Successfully updated inventory for ${item.name}`);
+                    updatedCount++;
                 }
-                
-                return updateResponse.json();
-            } catch (error) {
-                console.error(`Error updating inventory for item ${item.id}:`, error);
-                throw error;
+            } catch (itemError) {
+                console.error(`Error processing item ${item.name}:`, itemError);
+                errorCount++;
             }
-        });
+        }
         
-        // Wait for all inventory updates to complete
-        await Promise.all(updatePromises);
-
-        // NEW CODE: Update the invoice number for next invoice
-        await updateNextInvoiceNumber(invoiceNo);
-
-        displayMessage("Invoice saved and inventory updated successfully!", "success");
-        setTimeout(() => {
-            window.location.reload();
-        }, 1500);
+        // STEP 12: Report inventory update results
+        console.log(`Inventory update completed: ${updatedCount} items updated, ${errorCount} errors`);
+        
+        if (errorCount > 0) {
+            displayMessage(`Inventory partially updated: ${updatedCount} items updated, ${errorCount} failed`, "warning");
+        } else {
+            displayMessage(`Invoice saved and all ${updatedCount} items successfully updated in inventory`, "success");
+        }
+        
+        // STEP 13: Generate next invoice number for future use
+        const nextInvoiceNumber = generateNextInvoiceNumber(invoiceData.invoiceNo);
+        document.getElementById("invoice-no").value = nextInvoiceNumber;
+        localStorage.setItem("lastInvoiceNumber", nextInvoiceNumber);
+        
+        // STEP 14: Ask user if they want to reset form
+        if (confirm("Invoice saved successfully! Clear the form for a new invoice?")) {
+            resetBillingForm(nextInvoiceNumber);
+        } else {
+            // Reload the page after a short delay
+            setTimeout(() => {
+                window.location.reload();
+            }, 1500);
+        }
+        
     } catch (error) {
-        displayMessage(error.message);
+        console.error("Error saving invoice:", error);
+        displayMessage(`Error: ${error.message}`, "error");
     }
 }
+
+// Helper function to save billing with specific data (used for retrying with new invoice number)
+async function saveBillingWithData(invoiceData) {
+    const token = localStorage.getItem("token");
+    if (!token) {
+        displayMessage("You must be logged in to create invoices", "error");
+        return;
+    }
+    
+    try {
+        // Show a "saving" message
+        displayMessage("Saving invoice with new number...", "info");
+        
+        // Save the invoice to the server
+        const response = await fetch(`${BASE_URL}/api/billing`, {
+            method: "POST",
+            headers: {
+                "Authorization": `Bearer ${token}`,
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(invoiceData)
+        });
+        
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(errorText || "Failed to save invoice with new number");
+        }
+        
+        // Invoice saved successfully - now update inventory
+        console.log("Invoice saved successfully with new number, updating inventory...");
+        displayMessage("Invoice saved, updating inventory...", "info");
+        
+        // Update inventory for this invoice
+        await updateInventoryForInvoice(invoiceData);
+        
+        // Generate next invoice number
+        const nextInvoiceNumber = generateNextInvoiceNumber(invoiceData.invoiceNo);
+        localStorage.setItem("lastInvoiceNumber", nextInvoiceNumber);
+        
+        // Display success message
+        displayMessage("Invoice saved and inventory updated successfully!", "success");
+        
+        // Ask user if they want to create a new invoice
+        const resetForm = confirm("Invoice saved successfully! Clear the form for a new invoice?");
+        if (resetForm) {
+            resetBillingForm(nextInvoiceNumber);
+        } else {
+            // Reload the page after a short delay
+            setTimeout(() => {
+                window.location.reload();
+            }, 1500);
+        }
+        
+    } catch (error) {
+        console.error("Error saving invoice with new number:", error);
+        displayMessage(`Error: ${error.message}`, "error");
+    }
+}
+
 
 // NEW FUNCTION: Update and save the next invoice number
 async function updateNextInvoiceNumber(currentInvoiceNo) {
@@ -2258,76 +2724,43 @@ async function updateNextInvoiceNumber(currentInvoiceNo) {
     }
 }
 
-// MODIFY the fetchLastInvoiceNumber function to check localStorage first
-async function fetchLastInvoiceNumber() {
-    // First check localStorage for cached invoice number
-    const cachedInvoiceNo = localStorage.getItem("lastInvoiceNumber");
-    if (cachedInvoiceNo) {
-        // If we have a locally stored number, use that
-        return cachedInvoiceNo;
-    }
 
-    // Otherwise, fetch from server
-    const token = localStorage.getItem("token");
+
+// Initialize the invoice number when the page loads
+async function initializeInvoicePage() {
     try {
-        const response = await fetch(`${BASE_URL}/api/invoices/last`, {
+        // Fetch a new invoice number from the server
+        const token = localStorage.getItem("token");
+        if (!token) return;
+        
+        const response = await fetch(`${BASE_URL}/api/invoices/new`, {
             headers: {
                 "Authorization": `Bearer ${token}`,
                 "Content-Type": "application/json"
             }
         });
-
-        if (!response.ok) throw new Error("Failed to fetch last invoice number");
-
-        const { lastInvoiceNumber } = await response.json();
         
-        // Cache the result in localStorage
-        if (lastInvoiceNumber) {
-            localStorage.setItem("lastInvoiceNumber", lastInvoiceNumber);
-        }
+        if (!response.ok) throw new Error("Failed to get new invoice number");
         
-        return lastInvoiceNumber;
+        const { invoiceNo } = await response.json();
+        
+        // Set the invoice number in the form
+        document.getElementById("invoice-no").value = invoiceNo;
     } catch (error) {
-        console.error("Error fetching last invoice number:", error);
-        displayMessage(error.message);
-        return "INV-1000"; // Return a default starting number if all else fails
+        console.error("Error initializing invoice:", error);
+        displayMessage(error.message, "error");
     }
 }
 
-// MODIFY: Initialize invoice number on page load
-async function initializeInvoiceNumber() {
-    // Fetch the last invoice number
-    const lastInvoiceNo = await fetchLastInvoiceNumber();
-    
-    // Set it in the form field
-    if (lastInvoiceNo) {
-        document.getElementById("invoice-no").value = lastInvoiceNo;
-    } else {
-        // Default starting invoice number if none found
-        document.getElementById("invoice-no").value = "INV-1000"; 
-    }
-}
+// Set current date
+document.getElementById("invoice-date").value = new Date().toISOString().split('T')[0]; // Format: YYYY-MM-DD
 
-// MODIFY: Add call to initialize invoice number during page load
-document.addEventListener("DOMContentLoaded", function() {
-    // Existing initialization code
-    setupQuantityValidation();
-    addQuantityStyles();
-    setupSuggestionModal();
-    setupNotifications();
-    fetchProfile();
-    populateItemsTable([]);
-    updateActionButtons();
-    
-    // Add invoice number initialization
-    initializeInvoiceNumber();
+// Initialize
+setupSuggestionModal();
+setupNotifications();
+fetchProfile();
+populateItemsTable([]);  // Initialize with empty table
+updateActionButtons();   // Replace the next button with print and save buttons
+console.log("DOM loaded, initializing invoice number...");
+setTimeout(ensureInvoiceNumberIsVisible, 500); // Added to fix invoice number visibility
 });
-
-        // Initialize
-        setupSuggestionModal();
-        setupNotifications();
-        fetchProfile();
-        populateItemsTable([]);  // Initialize with empty table
-        updateActionButtons();   // Replace the next button with print and save buttons
-    });
-    
