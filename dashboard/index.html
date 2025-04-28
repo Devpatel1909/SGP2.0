@@ -3,9 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard | eBazar</title>
+    <title>Dashboard | eMart</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="index.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-        <link rel="stylesheet" href="index.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
 </head>
 <body>
     <div class="dashboard-container">
@@ -15,21 +18,36 @@
                 <h2><i class="fas fa-shopping-cart"></i> eMart</h2>
             </div>
             <ul class="menu-list">
-                <li class="active"><a href="./index.html"><i class="fa-solid fa-house"></i> Dashboard</a></li>
-                <li><a href="../product/index.html"><i class="fa-solid fa-box"></i> Products</a></li>
-                <li><a href="../Billing/index.html"><i class="fas fa-file-invoice"></i> Billing</a></li>
-                <li><a href="../customer/customer.html"><i class="fas fa-users"></i> Customers</a></li>
-                <li><a href="../inventory/index.html"><i class="fas fa-warehouse"></i> Inventory</a></li>
-                <!-- <li><a href="#"><i class="fa-solid fa-cog"></i> Settings</a></li> -->
+                <li class="active"><a href="index.html"><i class="fas fa-home"></i><span>Dashboard</span></a></li>
+                <li><a href="../product/index.html"><i class="fas fa-box"></i><span>Products</span></a></li>
+                <li><a href="../billing/index.html"><i class="fas fa-file-invoice"></i><span>Billing</span></a></li>
+                <li><a href="../customer/customer.html"><i class="fas fa-users"></i><span>Customers</span></a></li>
+                <li><a href="../inventory/index.html"><i class="fas fa-warehouse"></i><span>Inventory</span></a></li>
             </ul>
         </aside>
 
-        <!-- Main Content -->
         <main class="main-content">
             <header class="top-header">
                 <h2>Dashboard</h2>
                 <div id="message" class="message" role="alert"></div>
                 <div class="header-actions">
+                    <div class="notification-container">
+                        <i class="fa-solid fa-bell" id="notification-bell"></i>
+                        <span class="notification-badge" id="notification-count">0</span>
+                        <div class="notification-dropdown" id="notification-dropdown">
+                            <div class="notification-header">
+                                <h3>Notifications</h3>
+                                <button id="mark-all-read">Mark all as read</button>
+                            </div>
+                            <div class="notification-body" id="notification-list">
+                                <!-- Notifications will be added here -->
+                            </div>
+                            <div class="notification-footer">
+                                <a href="../inventory/index.html">View All</a>
+                            </div>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-flag"></i>
                     <div class="profile">
                         <span id="username">Guest</span>
                         <button id="auth-btn">Login</button>
@@ -37,119 +55,149 @@
                 </div>
             </header>
 
-            <section class="dashboard-content">
-                <!-- Key Metrics Cards -->
-                <div class="metrics-container">
-                    <div class="metric-card">
-                        <div class="metric-icon">
-                            <i class="fas fa-chart-line"></i>
+            <div class="dashboard-content">
+                <!-- Stats Cards -->
+                <div class="stats-cards">
+                    <div class="stat-card sales">
+                        <div class="stat-icon">
+                            <i class="fas fa-rupee-sign"></i>
                         </div>
-                        <div class="metric-content">
+                        <div class="stat-details">
                             <h3>Total Sales</h3>
-                            <p class="metric-value">₹<span id="total-sales">0</span></p>
-                            <p class="metric-change positive"><i class="fas fa-arrow-up"></i> 15% from last month</p>
+                            <div class="stat-value" id="total-sales">₹0</div>
+                            <div class="stat-change" id="sales-change">
+                                <i class="fas fa-arrow-up"></i> 0%
+                            </div>
                         </div>
                     </div>
-
-                    <div class="metric-card">
-                        <div class="metric-icon">
+                    <div class="stat-card orders">
+                        <div class="stat-icon">
                             <i class="fas fa-shopping-bag"></i>
                         </div>
-                        <div class="metric-content">
+                        <div class="stat-details">
                             <h3>Total Orders</h3>
-                            <p class="metric-value"><span id="total-orders">0</span></p>
-                            <p class="metric-change positive"><i class="fas fa-arrow-up"></i> 8% from last month</p>
+                            <div class="stat-value" id="total-orders">0</div>
+                            <div class="stat-change" id="orders-change">
+                                <i class="fas fa-arrow-up"></i> 0%
+                            </div>
                         </div>
                     </div>
-
-                    <div class="metric-card">
-                        <div class="metric-icon">
+                    <div class="stat-card products">
+                        <div class="stat-icon">
                             <i class="fas fa-box"></i>
                         </div>
-                        <div class="metric-content">
+                        <div class="stat-details">
                             <h3>Products</h3>
-                            <p class="metric-value"><span id="total-products">0</span></p>
-                            <p class="metric-change neutral"><i class="fas fa-minus"></i> No change</p>
+                            <div class="stat-value" id="total-products">0</div>
+                            <div class="stat-change" id="products-change">
+                                <i class="fas fa-minus"></i> 0%
+                            </div>
                         </div>
                     </div>
-
-                    <div class="metric-card">
-                        <div class="metric-icon">
+                    <div class="stat-card customers">
+                        <div class="stat-icon">
                             <i class="fas fa-users"></i>
                         </div>
-                        <div class="metric-content">
+                        <div class="stat-details">
                             <h3>Customers</h3>
-                            <p class="metric-value"><span id="total-customers">0</span></p>
-                            <p class="metric-change positive"><i class="fas fa-arrow-up"></i> 12% from last month</p>
+                            <div class="stat-value" id="total-customers">0</div>
+                            <div class="stat-change" id="customers-change">
+                                <i class="fas fa-arrow-up"></i> 0%
+                            </div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Charts Section -->
-                <div class="charts-container">
-                    <div class="chart-card">
-                        <h3>Sales Overview</h3>
-                        <div class="chart-container" id="sales-chart">
-                            <canvas id="sales-chart-canvas"></canvas>
+                <div class="charts-section">
+                    <div class="chart-container monthly-sales">
+                        <h3>Monthly Sales</h3>
+                        <div class="chart-controls">
+                            <button class="active" data-period="month">Month</button>
+                            <button data-period="quarter">Quarter</button>
+                            <button data-period="year">Year</button>
+                        </div>
+                        <div class="chart-wrapper">
+                            <canvas id="monthlySalesChart"></canvas>
                         </div>
                     </div>
-                    
-                    <div class="chart-card">
+                    <div class="chart-container top-products">
                         <h3>Top Products</h3>
-                        <div class="chart-container" id="products-chart">
-                            <canvas id="products-chart-canvas"></canvas>
+                        <div class="chart-wrapper">
+                            <canvas id="topProductsChart"></canvas>
                         </div>
                     </div>
                 </div>
 
-                <!-- Recent Orders and Low Stock Items -->
-                <div class="tables-container">
-                    <div class="table-card">
+                <!-- Inventory and Customers Section -->
+                <div class="data-tables-section">
+                    <div class="data-table inventory-profit">
                         <div class="table-header">
-                            <h3>Recent Orders</h3>
-                            <a href="../Billing/index.html" class="view-all">View All <i class="fas fa-arrow-right"></i></a>
+                            <h3>Inventory Profit Analysis</h3>
+                            <button class="refresh-btn" id="refresh-inventory">
+                                <i class="fas fa-sync-alt"></i>
+                            </button>
                         </div>
-                        <table class="dashboard-table">
-                            <thead>
-                                <tr>
-                                    <th>Order ID</th>
-                                    <th>Customer</th>
-                                    <th>Date</th>
-                                    <th>Amount</th>
-                                    <th>Status</th>
-                                </tr>
-                            </thead>
-                            <tbody id="recent-orders-body">
-                                <!-- Dynamic content will be added here -->
-                            </tbody>
-                        </table>
+                        <div class="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Product Name</th>
+                                        <th>Price</th>
+                                        <th>Profit</th>
+                                        <th>Profit Margin</th>
+                                        <th>Stock</th>
+                                        <th>Potential Profit</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="inventory-table-body">
+                                    <!-- Inventory data will be loaded here -->
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
-
-                    <div class="table-card">
+                    <div class="data-table recent-customers">
                         <div class="table-header">
-                            <h3>Low Stock Items</h3>
-                            <a href="../inventory/index.html" class="view-all">View All <i class="fas fa-arrow-right"></i></a>
+                            <h3>Recent Customers</h3>
+                            <button class="refresh-btn" id="refresh-customers">
+                                <i class="fas fa-sync-alt"></i>
+                            </button>
                         </div>
-                        <table class="dashboard-table">
-                            <thead>
-                                <tr>
-                                    <th>Item</th>
-                                    <th>Current Stock</th>
-                                    <th>Reorder Level</th>
-                                    <th>Status</th>
-                                </tr>
-                            </thead>
-                            <tbody id="low-stock-body">
-                                <!-- Dynamic content will be added here -->
-                            </tbody>
-                        </table>
+                        <div class="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Customer</th>
+                                        <th>Phone</th>
+                                        <th>Orders</th>
+                                        <th>Total Spent</th>
+                                        <th>Last Order</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="customers-table-body">
+                                    <!-- Customer data will be loaded here -->
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
-            </section>
+
+                <!-- Low Stock Alert Section -->
+                <div class="alerts-section">
+                    <div class="alert-container low-stock">
+                        <div class="alert-header">
+                            <h3><i class="fas fa-exclamation-triangle"></i> Low Stock Alerts</h3>
+                            <span id="low-stock-count" class="alert-count">0</span>
+                        </div>
+                        <div class="alert-items" id="low-stock-alerts">
+                            <!-- Low stock alerts will be loaded here -->
+                        </div>
+                    </div>
+                </div>>
+            </div>
         </main>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="index.js"></script>
 </body>
 </html>

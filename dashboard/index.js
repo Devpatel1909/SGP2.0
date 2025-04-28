@@ -1,16 +1,68 @@
+
 document.addEventListener("DOMContentLoaded", () => {
     const BASE_URL = "http://localhost:3000";
     const messageDiv = document.getElementById("message");
+    let notifications = [];
     
+    // Notification bell and dropdown elements
+    const notificationBell = document.getElementById('notification-bell');
+    const notificationDropdown = document.getElementById('notification-dropdown');
+
     // Initialize dashboard
-    async function initDashboard() {
-        fetchProfile();
-        loadMetrics();
-        loadCharts();
-        loadRecentOrders();
-        loadLowStockItems();
+    fetchProfile();
+    setupNotifications();
+    fetchDashboardMetrics();
+    fetchSalesChartData();
+    fetchTopProductsData();
+    fetchInventoryItems();
+    fetchRecentCustomers();
+    fetchLowStockAlerts();
+    
+    // Setup event listeners
+    document.getElementById("refresh-inventory").addEventListener("click", fetchInventoryItems);
+    document.getElementById("refresh-customers").addEventListener("click", fetchRecentCustomers);
+    
+    // Chart period buttons
+    document.querySelectorAll(".chart-controls button").forEach(button => {
+        button.addEventListener("click", (e) => {
+            document.querySelectorAll(".chart-controls button").forEach(btn => btn.classList.remove("active"));
+            e.target.classList.add("active");
+            updateSalesChart(e.target.dataset.period);
+        });
+    });
+    
+    // Notification bell click event
+    notificationBell.addEventListener('click', (e) => {
+        e.stopPropagation();
+        notificationDropdown.classList.toggle('active');
+    });
+    
+    // Close notification dropdown when clicking outside
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('.notification-container')) {
+            notificationDropdown.classList.remove('active');
+        }
+    });
+    
+    // Mark all notifications as read
+    const markAllReadBtn = document.getElementById('mark-all-read');
+    markAllReadBtn.addEventListener('click', () => {
+        notifications.forEach(notification => {
+            notification.read = true;
+        });
+        updateNotifications();
+        saveNotificationsToStorage();
+    });
+    // Check login status
+    function checkLogin() {
+        const token = localStorage.getItem("token");
+        if (!token) {
+            window.location.href = "../login/login.html";
+        }
+        return token;
     }
     
+    // Display feedback messages
     function displayMessage(message, type = "error") {
         messageDiv.textContent = message;
         messageDiv.className = `message ${type}`;
@@ -19,43 +71,59 @@ document.addEventListener("DOMContentLoaded", () => {
             messageDiv.style.display = "none";
         }, 3000);
     }
-
+    
+    // Format currency in INR
+    function formatCurrency(amount) {
+        return new Intl.NumberFormat('en-IN', {
+            style: 'currency',
+            currency: 'INR',
+            minimumFractionDigits: 2
+        }).format(amount);
+    }
+    
+    // Format date
+    function formatDate(date) {
+        return new Date(date).toLocaleDateString('en-IN', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric'
+        });
+    }
+    
+    // Get user profile
     async function fetchProfile() {
         const authButton = document.getElementById("auth-btn");
         const usernameSpan = document.getElementById("username");
-    
         const token = localStorage.getItem("token");
-    
+        
         if (!token) {
-            // No token - show Login button and default username
             usernameSpan.textContent = "Guest";
             authButton.textContent = "Login";
             authButton.classList.remove("logout");
             authButton.addEventListener("click", () => {
-                window.location.href = "../login/login.html"; // Redirect to login page
+                window.location.href = "../login/login.html";
             });
             return;
         }
-    
+        
         try {
-            // Fetch user profile with token
             const response = await fetch(`${BASE_URL}/api/profile`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
+            
             if (!response.ok) throw new Error("Failed to fetch profile");
-    
+            
             const { username } = await response.json();
             usernameSpan.textContent = username;
-    
-            // Show Logout button
+            
             authButton.textContent = "Logout";
             authButton.classList.add("logout");
             authButton.addEventListener("click", () => {
                 localStorage.removeItem("token");
-                window.location.href = "../login/login.html"; // Redirect to login page
+                window.location.href = "../login/login.html";
             });
-        } catch {
-            // Handle failed profile fetch
+        } catch (error) {
+            console.error("Error fetching profile:", error);
             usernameSpan.textContent = "Guest";
             authButton.textContent = "Login";
             authButton.classList.remove("logout");
@@ -65,280 +133,659 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
     
-    // Load metrics data
-    async function loadMetrics() {
-        try {
-            const token = localStorage.getItem("token");
-            if (!token) return;
+    // Setup notifications
+    function setupNotifications() {
+        // Load saved notifications
+        loadNotificationsFromStorage();
+    }
+    
+    // Update notifications UI
+    function updateNotifications() {
+        const notificationCount = document.getElementById('notification-count');
+        const notificationList = document.getElementById('notification-list');
+        
+        // Count unread notifications
+        const unreadCount = notifications.filter(n => !n.read).length;
+        
+        // Update badge count
+        notificationCount.textContent = unreadCount;
+        notificationCount.style.display = unreadCount > 0 ? 'flex' : 'none';
+        
+        // Update bell icon appearance
+        if (unreadCount > 0) {
+            notificationBell.classList.add('has-notifications');
+        } else {
+            notificationBell.classList.remove('has-notifications');
+        }
+        
+        // Update notification list
+        notificationList.innerHTML = '';
+        
+        if (notifications.length === 0) {
+            notificationList.innerHTML = `
+                <div class="no-notifications">
+                    <i class="fas fa-check-circle"></i>
+                    <p>No notifications</p>
+                </div>
+            `;
+            return;
+        }
+        
+        // Sort notifications by priority and timestamp
+        const sortedNotifications = [...notifications].sort((a, b) => {
+            // First by read status
+            if (a.read !== b.read) return a.read ? 1 : -1;
             
-            // Fetch dashboard metrics
-            const response = await fetch(`${BASE_URL}/api/dashboard/metrics`, {
-                headers: { Authorization: `Bearer ${token}` },
+            // Then by priority
+            const priorityOrder = { high: 0, medium: 1, low: 2 };
+            if (priorityOrder[a.priority] !== priorityOrder[b.priority]) 
+                return priorityOrder[a.priority] - priorityOrder[b.priority];
+            
+            // Then by timestamp (newest first)
+            return new Date(b.timestamp) - new Date(a.timestamp);
+        });
+        
+        // Create notification items
+        sortedNotifications.forEach((notification, index) => {
+            const notificationItem = document.createElement('div');
+            notificationItem.className = `notification-item ${notification.read ? 'read' : 'unread'} priority-${notification.priority}`;
+            
+            const timeAgo = getTimeAgo(new Date(notification.timestamp));
+            
+            let icon = 'fas fa-info-circle';
+            if (notification.type === 'low-stock') icon = 'fas fa-cubes';
+            if (notification.type === 'expiry') icon = 'fas fa-calendar-times';
+            
+            notificationItem.innerHTML = `
+                <div class="notification-icon">
+                    <i class="${icon}"></i>
+                </div>
+                <div class="notification-content">
+                    <div class="notification-title">${notification.title}</div>
+                    <div class="notification-message">${notification.message}</div>
+                    <div class="notification-time">${timeAgo}</div>
+                </div>
+                <div class="notification-actions">
+                    <button class="mark-read" data-index="${index}">
+                        <i class="fas ${notification.read ? 'fa-envelope-open' : 'fa-envelope'}"></i>
+                    </button>
+                    <button class="delete-notification" data-index="${index}">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            `;
+            
+            notificationList.appendChild(notificationItem);
+            
+            // Add event listeners for mark as read and delete
+            const markReadBtn = notificationItem.querySelector('.mark-read');
+            const deleteBtn = notificationItem.querySelector('.delete-notification');
+            
+            markReadBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const index = parseInt(e.currentTarget.dataset.index);
+                notifications[index].read = !notifications[index].read;
+                updateNotifications();
+                saveNotificationsToStorage();
             });
             
-            if (!response.ok) {
-                // For demo purposes, use placeholder data if API fails
-                updateMetricsWithDemoData();
-                return;
-            }
-            
-            const metrics = await response.json();
-            
-            // Update metric values
-            document.getElementById("total-sales").textContent = metrics.totalSales.toLocaleString('en-IN');
-            document.getElementById("total-orders").textContent = metrics.totalOrders.toLocaleString();
-            document.getElementById("total-products").textContent = metrics.totalProducts.toLocaleString();
-            document.getElementById("total-customers").textContent = metrics.totalCustomers.toLocaleString();
-            
-        } catch (error) {
-            console.error("Error loading metrics:", error);
-            // For demo purposes, use placeholder data if API fails
-            updateMetricsWithDemoData();
-        }
-    }
-    
-    // Fallback function to populate metrics with demo data
-    function updateMetricsWithDemoData() {
-        document.getElementById("total-sales").textContent = "125,430";
-        document.getElementById("total-orders").textContent = "843";
-        document.getElementById("total-products").textContent = "152";
-        document.getElementById("total-customers").textContent = "386";
-    }
-    
-    // Load and initialize charts
-    function loadCharts() {
-        initSalesChart();
-        initProductsChart();
-    }
-    
-    // Initialize sales chart
-    function initSalesChart() {
-        const ctx = document.getElementById('sales-chart-canvas').getContext('2d');
-        
-        // Demo data for sales chart
-        const salesData = {
-            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-            datasets: [{
-                label: 'Monthly Sales (₹)',
-                data: [12500, 15000, 18000, 16000, 20000, 22000, 25000, 23000, 27000, 29000, 32000, 35000],
-                backgroundColor: 'rgba(90, 74, 209, 0.2)',
-                borderColor: 'rgba(90, 74, 209, 1)',
-                borderWidth: 2,
-                tension: 0.4,
-                fill: true
-            }]
-        };
-        
-        new Chart(ctx, {
-            type: 'line',
-            data: salesData,
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: {
-                            callback: function(value) {
-                                return '₹' + value.toLocaleString();
-                            }
-                        }
-                    }
-                },
-                plugins: {
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                return 'Sales: ₹' + context.parsed.y.toLocaleString();
-                            }
-                        }
-                    }
-                }
-            }
+            deleteBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const index = parseInt(e.currentTarget.dataset.index);
+                notifications.splice(index, 1);
+                updateNotifications();
+                saveNotificationsToStorage();
+            });
         });
     }
     
-    // Initialize products chart - FIXED VERSION
-    function initProductsChart() {
-        const ctx = document.getElementById('products-chart-canvas').getContext('2d');
+    // Get relative time string
+    function getTimeAgo(date) {
+        const seconds = Math.floor((new Date() - date) / 1000);
         
-        // Demo data for top products chart
-        const productsData = {
-            labels: ['Smart Phone', 'Laptop', 'Headphones', 'Smart Watch', 'Camera'],
-            datasets: [{
-                label: 'Units Sold',
-                data: [150, 90, 120, 60, 40],
-                backgroundColor: [
-                    'rgba(90, 74, 209, 0.7)',
-                    'rgba(56, 193, 114, 0.7)',
-                    'rgba(245, 158, 11, 0.7)',
-                    'rgba(239, 68, 68, 0.7)',
-                    'rgba(16, 185, 129, 0.7)'
-                ],
-                borderWidth: 1
-            }]
-        };
+        let interval = seconds / 31536000;
+        if (interval > 1) return Math.floor(interval) + " years ago";
         
-        new Chart(ctx, {
+        interval = seconds / 2592000;
+        if (interval > 1) return Math.floor(interval) + " months ago";
+        
+        interval = seconds / 86400;
+        if (interval > 1) return Math.floor(interval) + " days ago";
+        
+        interval = seconds / 3600;
+        if (interval > 1) return Math.floor(interval) + " hours ago";
+        
+        interval = seconds / 60;
+        if (interval > 1) return Math.floor(interval) + " minutes ago";
+        
+        return Math.floor(seconds) + " seconds ago";
+    }
+    
+    // Save notifications to localStorage
+    function saveNotificationsToStorage() {
+        localStorage.setItem('notifications', JSON.stringify(notifications));
+    }
+    
+    // Load notifications from localStorage
+    function loadNotificationsFromStorage() {
+        const saved = localStorage.getItem('notifications');
+        if (saved) {
+            notifications = JSON.parse(saved);
+            updateNotifications();
+        }
+    }
+    
+    // Fetch dashboard metrics
+    async function fetchDashboardMetrics() {
+        const token = checkLogin();
+        try {
+            const response = await fetch(`${BASE_URL}/api/dashboard/metrics`, {
+                headers: { "Authorization": `Bearer ${token}` }
+            });
+            
+            if (!response.ok) throw new Error("Failed to fetch dashboard metrics");
+            
+            const data = await response.json();
+            
+            // Update metrics display
+            document.getElementById("total-sales").textContent = formatCurrency(data.totalSales);
+            document.getElementById("total-orders").textContent = data.totalOrders;
+            document.getElementById("total-products").textContent = data.totalProducts;
+            document.getElementById("total-customers").textContent = data.totalCustomers;
+            
+            // Update change percentages with proper icons
+            updateChangeDisplay("sales-change", data.changes.sales);
+            updateChangeDisplay("orders-change", data.changes.orders);
+            updateChangeDisplay("products-change", data.changes.products);
+            updateChangeDisplay("customers-change", data.changes.customers);
+            
+        } catch (error) {
+            console.error("Error fetching dashboard metrics:", error);
+            displayMessage("Failed to load dashboard metrics", "error");
+        }
+    }
+    
+    // Update change display with correct icon and color
+    function updateChangeDisplay(elementId, changePercentage) {
+        const element = document.getElementById(elementId);
+        let icon, className;
+        
+        if (changePercentage > 0) {
+            icon = "fa-arrow-up";
+            className = "positive";
+        } else if (changePercentage < 0) {
+            icon = "fa-arrow-down";
+            className = "negative";
+            // Make percentage positive for display
+            changePercentage = Math.abs(changePercentage);
+        } else {
+            icon = "fa-minus";
+            className = "neutral";
+        }
+        
+        element.innerHTML = `<i class="fas ${icon}"></i> ${changePercentage}%`;
+        element.className = `stat-change ${className}`;
+    }
+    
+    // Fetch sales chart data
+    let salesChartInstance = null;
+    let monthlySalesData = null;
+    
+    async function fetchSalesChartData() {
+        const token = checkLogin();
+        try {
+            const response = await fetch(`${BASE_URL}/api/dashboard/sales-chart`, {
+                headers: { "Authorization": `Bearer ${token}` }
+            });
+            
+            if (!response.ok) throw new Error("Failed to fetch sales chart data");
+            
+            monthlySalesData = await response.json();
+            
+            // Initialize the chart with monthly data by default
+            initializeSalesChart(monthlySalesData);
+            
+        } catch (error) {
+            console.error("Error fetching sales chart data:", error);
+            displayMessage("Failed to load sales chart", "error");
+        }
+    }
+    
+    // Initialize the monthly sales chart
+    function initializeSalesChart(data) {
+        const ctx = document.getElementById('monthlySalesChart').getContext('2d');
+        
+        if (salesChartInstance) {
+            salesChartInstance.destroy();
+        }
+        
+        salesChartInstance = new Chart(ctx, {
             type: 'bar',
-            data: productsData,
+            data: {
+                labels: data.labels,
+                datasets: [{
+                    label: 'Sales',
+                    data: data.data,
+                    backgroundColor: 'rgba(90, 74, 209, 0.3)',
+                    borderColor: 'rgba(90, 74, 209, 1)',
+                    borderWidth: 1,
+                    borderRadius: 5,
+                    hoverBackgroundColor: 'rgba(90, 74, 209, 0.5)'
+                }]
+            },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
                     legend: {
                         display: false
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return formatCurrency(context.raw);
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return formatCurrency(value);
+                            }
+                        }
                     }
                 }
             }
         });
     }
     
-    // Load recent orders
-    function loadRecentOrders() {
-        const recentOrdersBody = document.getElementById('recent-orders-body');
+    // Update sales chart based on selected period
+    function updateSalesChart(period) {
+        if (!monthlySalesData) return;
         
-        // Demo data for recent orders
-        const recentOrders = [
-            { id: 'ORD-1234', customer: 'John Doe', date: '2023-10-15', amount: 5600, status: 'completed' },
-            { id: 'ORD-1235', customer: 'Jane Smith', date: '2023-10-14', amount: 3200, status: 'pending' },
-            { id: 'ORD-1236', customer: 'Mike Johnson', date: '2023-10-13', amount: 8900, status: 'completed' },
-            { id: 'ORD-1237', customer: 'Sarah Williams', date: '2023-10-12', amount: 1200, status: 'cancelled' },
-            { id: 'ORD-1238', customer: 'David Brown', date: '2023-10-11', amount: 4500, status: 'completed' }
-        ];
+        let labels = [...monthlySalesData.labels];
+        let data = [...monthlySalesData.data];
         
-        // Format date function
-        function formatDate(dateString) {
-            const date = new Date(dateString);
-            return `${date.getDate().toString().padStart(2, '0')}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getFullYear()}`;
+        // Transform data based on selected period
+        if (period === 'quarter') {
+            // Group monthly data into quarters
+            labels = ['Q1', 'Q2', 'Q3', 'Q4'];
+            data = [
+                data.slice(0, 3).reduce((sum, val) => sum + val, 0),
+                data.slice(3, 6).reduce((sum, val) => sum + val, 0),
+                data.slice(6, 9).reduce((sum, val) => sum + val, 0),
+                data.slice(9, 12).reduce((sum, val) => sum + val, 0)
+            ];
+        } else if (period === 'year') {
+            // Show yearly total
+            labels = [new Date().getFullYear().toString()];
+            data = [data.reduce((sum, val) => sum + val, 0)];
         }
         
-        // Create formatter for Indian Rupees
-        const formatter = new Intl.NumberFormat('en-IN', {
-            style: 'currency',
-            currency: 'INR'
-        });
+        // Update chart
+        salesChartInstance.data.labels = labels;
+        salesChartInstance.data.datasets[0].data = data;
+        salesChartInstance.update();
+    }
+    
+    // Fetch top products data for chart
+    async function fetchTopProductsData() {
+        const token = checkLogin();
+        try {
+            const response = await fetch(`${BASE_URL}/api/dashboard/top-products`, {
+                headers: { "Authorization": `Bearer ${token}` }
+            });
+            
+            if (!response.ok) throw new Error("Failed to fetch top products data");
+            
+            const data = await response.json();
+            
+            initializeTopProductsChart(data);
+            
+        } catch (error) {
+            console.error("Error fetching top products data:", error);
+            displayMessage("Failed to load top products chart", "error");
+        }
+    }
+    
+    // Initialize the top products chart
+    function initializeTopProductsChart(data) {
+        const ctx = document.getElementById('topProductsChart').getContext('2d');
         
-        // Generate table rows
-        recentOrdersBody.innerHTML = '';
-        recentOrders.forEach(order => {
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td>${order.id}</td>
-                <td>${order.customer}</td>
-                <td>${formatDate(order.date)}</td>
-                <td>${formatter.format(order.amount)}</td>
-                <td><span class="status-badge ${order.status}">${order.status}</span></td>
-            `;
-            recentOrdersBody.appendChild(row);
+        new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: data.labels,
+                datasets: [{
+                    data: data.data,
+                    backgroundColor: [
+                        'rgba(90, 74, 209, 0.7)',
+                        'rgba(245, 158, 11, 0.7)',
+                        'rgba(59, 130, 246, 0.7)',
+                        'rgba(56, 193, 114, 0.7)',
+                        'rgba(239, 68, 68, 0.7)'
+                    ],
+                    borderColor: [
+                        'rgba(90, 74, 209, 1)',
+                        'rgba(245, 158, 11, 1)',
+                        'rgba(59, 130, 246, 1)',
+                        'rgba(56, 193, 114, 1)',
+                        'rgba(239, 68, 68, 1)'
+                    ],
+                    borderWidth: 1,
+                    hoverOffset: 10
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'right',
+                        labels: {
+                            font: {
+                                size: 12
+                            },
+                            padding: 15,
+                            usePointStyle: true,
+                            boxWidth: 8
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const label = context.label || '';
+                                const value = context.raw || 0;
+                                const percentage = Math.round((value / data.data.reduce((a, b) => a + b, 0)) * 100);
+                                return `${label}: ${value} units (${percentage}%)`;
+                            }
+                        }
+                    }
+                },
+                cutout: '65%'
+            }
         });
     }
     
-    // Load low stock items
-    function loadLowStockItems() {
-        const lowStockBody = document.getElementById('low-stock-body');
+    // Fetch inventory items
+    async function fetchInventoryItems() {
+        const token = checkLogin();
         
-        // Demo data for low stock items
-        const lowStockItems = [
-            { name: 'Smart Phone', currentStock: 5, reorderLevel: 10, status: 'critical' },
-            { name: 'Headphones', currentStock: 8, reorderLevel: 15, status: 'warning' },
-            { name: 'Power Bank', currentStock: 12, reorderLevel: 20, status: 'warning' },
-            { name: 'Bluetooth Speaker', currentStock: 3, reorderLevel: 10, status: 'critical' },
-            { name: 'USB Cable', currentStock: 18, reorderLevel: 25, status: 'warning' }
-        ];
+        // Show loading state
+        const tableBody = document.getElementById("inventory-table-body");
+        tableBody.innerHTML = '';
+        tableBody.className = 'loading';
         
-        // Generate table rows
-        lowStockBody.innerHTML = '';
-        lowStockItems.forEach(item => {
+        try {
+            const response = await fetch(`${BASE_URL}/api/items`, {
+                headers: { "Authorization": `Bearer ${token}` }
+            });
+            
+            if (!response.ok) throw new Error("Failed to fetch inventory data");
+            
+            const items = await response.json();
+            
+            // Remove loading state
+            tableBody.className = '';
+            
+            // Sort items by profit margin (descending)
+            const sortedItems = items.sort((a, b) => {
+                const marginA = (a.profit / a.price) * 100;
+                const marginB = (b.profit / b.price) * 100;
+                return marginB - marginA;
+            });
+            
+            // Render top items (limit to 5)
+            const topItems = sortedItems.slice(0, 5);
+            renderInventoryItems(topItems);
+            
+        } catch (error) {
+            console.error("Error fetching inventory:", error);
+            displayMessage("Failed to load inventory data", "error");
+            
+            // Remove loading state
+            tableBody.className = '';
+            tableBody.innerHTML = `<tr><td colspan="6" class="text-center">Failed to load data. Please try again.</td></tr>`;
+        }
+    }
+    
+    // Render inventory items with profit analysis
+    function renderInventoryItems(items) {
+        const tableBody = document.getElementById("inventory-table-body");
+        tableBody.innerHTML = '';
+        
+        if (items.length === 0) {
+            tableBody.innerHTML = `<tr><td colspan="6" class="text-center">No inventory items found.</td></tr>`;
+            return;
+        }
+        
+        items.forEach(item => {
+            // Calculate profit margin
+            const profitMargin = item.profit && item.price ? (item.profit / item.price) * 100 : 0;
+            
+            // Determine profit margin category
+            let marginCategory;
+            if (profitMargin >= 30) {
+                marginCategory = 'profit-high';
+            } else if (profitMargin >= 15) {
+                marginCategory = 'profit-medium';
+            } else {
+                marginCategory = 'profit-low';
+            }
+            
+            // Calculate potential profit (profit * quantity)
+            const potentialProfit = item.profit * item.quantity;
+            
+            // Determine stock level category
+            let stockCategory;
+            if (item.quantity <= 5) {
+                stockCategory = 'stock-low';
+            } else if (item.quantity <= 20) {
+                stockCategory = 'stock-medium';
+            } else {
+                stockCategory = 'stock-high';
+            }
+            
             const row = document.createElement('tr');
             row.innerHTML = `
                 <td>${item.name}</td>
-                <td>${item.currentStock}</td>
-                <td>${item.reorderLevel}</td>
-                <td><span class="status-badge ${item.status}">${item.status}</span></td>
+                <td>${formatCurrency(item.price)}</td>
+                <td>${formatCurrency(item.profit)}</td>
+                <td><span class="profit-indicator ${marginCategory}">${profitMargin.toFixed(1)}%</span></td>
+                <td><span class="stock-indicator ${stockCategory}"></span>${item.quantity}</td>
+                <td>${formatCurrency(potentialProfit)}</td>
             `;
-            lowStockBody.appendChild(row);
+            
+            tableBody.appendChild(row);
         });
     }
     
-    // Add activity timeline functionality
-    function setupActivityTimeline() {
-        // This could fetch real activity data from the server
-        // For now, we'll just make the timeline items interactive
-        
-        const timelineItems = document.querySelectorAll('.timeline-item');
-        
-        timelineItems.forEach(item => {
-            item.addEventListener('click', () => {
-                // Highlight clicked item
-                timelineItems.forEach(i => i.classList.remove('active'));
-                item.classList.add('active');
-                
-                // You could show more details or navigate to relevant page
-                const actionType = item.querySelector('h4').textContent;
-                console.log(`Timeline item clicked: ${actionType}`);
-            });
+   async function fetchRecentCustomers() {
+    const token = checkLogin();
+    
+    // Show loading state
+    const tableBody = document.getElementById("customers-table-body");
+    tableBody.innerHTML = '';
+    tableBody.className = 'loading';
+    
+    try {
+        const response = await fetch(`${BASE_URL}/api/billing?limit=50`, {
+            headers: { "Authorization": `Bearer ${token}` }
         });
-    }
-    
-    // Set up quick action cards with hover effects
-    function setupQuickActions() {
-        const quickActionCards = document.querySelectorAll('.quick-action-card');
         
-        quickActionCards.forEach(card => {
-            // Add pulse animation on hover
-            card.addEventListener('mouseenter', () => {
-                const icon = card.querySelector('.action-icon i');
-                icon.classList.add('fa-pulse');
-            });
-            
-            card.addEventListener('mouseleave', () => {
-                const icon = card.querySelector('.action-icon i');
-                icon.classList.remove('fa-pulse');
-            });
-        });
-    }
-    
-    // Provide realtime updates demo
-    function setupRealtimeUpdates() {
-        // Simulate real-time updates with a timer
-        setInterval(() => {
-            // Randomly update one of the metrics for demo purposes
-            const metrics = ['total-sales', 'total-orders', 'total-products', 'total-customers'];
-            const randomMetric = metrics[Math.floor(Math.random() * metrics.length)];
-            
-            const element = document.getElementById(randomMetric);
-            const currentValue = parseInt(element.textContent.replace(/,/g, ''));
-            
-            // Update with a small random increment
-            const increment = Math.floor(Math.random() * 5) + 1;
-            const newValue = currentValue + increment;
-            
-            // Animate the change
-            element.textContent = newValue.toLocaleString();
-            element.style.transition = 'all 0.5s ease';
-            element.style.color = '#5a4ad1'; // Fixed: use hex value instead of var()
-            
-            setTimeout(() => {
-                element.style.color = '';
-            }, 1000);
-            
-        }, 30000); // Update every 30 seconds
-    }
-    
-    // Call additional initialization functions
-    initDashboard();
-    
-    // These should only be called after DOM is fully loaded and all elements exist
-    setTimeout(() => {
-        if (document.querySelector('.timeline-item')) {
-            setupActivityTimeline();
+        if (!response.ok) throw new Error("Failed to fetch billing data");
+        
+        const data = await response.json();
+        const billingRecords = data.records || []; // Ensure this is correctly referenced
+
+        // Remove loading state
+        tableBody.className = '';
+        
+        if (billingRecords.length === 0) {
+            tableBody.innerHTML = `<tr><td colspan="5" class="text-center">No customer data found.</td></tr>`;
+            return;
         }
         
-        if (document.querySelector('.quick-action-card')) {
-            setupQuickActions();
+        // Process billing records to get customer data
+        const customerMap = new Map();
+        
+        billingRecords.forEach(record => {
+            const { customerPhone, customerName, invoiceDate, items, grandTotal } = record;
+            
+            if (!customerPhone) return; // Skip if no phone number
+            
+            if (!customerMap.has(customerPhone)) {
+                customerMap.set(customerPhone, {
+                    name: customerName || 'Unknown',
+                    phone: customerPhone,
+                    orderCount: 0,
+                    totalSpent: 0,
+                    lastOrderDate: null
+                });
+            }
+            
+            const customer = customerMap.get(customerPhone);
+            customer.orderCount++;
+            customer.totalSpent += parseFloat(grandTotal) || 0;
+            
+            // Update last order date if this order is more recent
+            const orderDate = new Date(invoiceDate);
+            if (!customer.lastOrderDate || orderDate > customer.lastOrderDate) {
+                customer.lastOrderDate = orderDate;
+            }
+        });
+        
+        // Convert map to array and sort by total spent (descending)
+        const customers = Array.from(customerMap.values())
+            .sort((a, b) => b.totalSpent - a.totalSpent)
+            .slice(0, 5); // Show top 5 customers
+        
+        renderRecentCustomers(customers);
+        
+    } catch (error) {
+        console.error("Error fetching customer data:", error);
+        displayMessage("Failed to load customer data", "error");
+        
+        // Remove loading state
+        tableBody.className = '';
+        tableBody.innerHTML = `<tr><td colspan="5" class="text-center">Failed to load data. Please try again.</td></tr>`;
+    }
+}
+    // Render recent customers table
+    function renderRecentCustomers(customers) {
+        const tableBody = document.getElementById("customers-table-body");
+        tableBody.innerHTML = '';
+        
+        customers.forEach(customer => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${customer.name}</td>
+                <td>${customer.phone}</td>
+                <td>${customer.orderCount}</td>
+                <td>${formatCurrency(customer.totalSpent)}</td>
+                <td>${customer.lastOrderDate ? formatDate(customer.lastOrderDate) : 'N/A'}</td>
+            `;
+            
+            tableBody.appendChild(row);
+        });
+    }
+    
+    // Fetch low stock alerts
+    async function fetchLowStockAlerts() {
+        const token = checkLogin();
+        try {
+            const response = await fetch(`${BASE_URL}/api/inventory/low-stock`, {
+                headers: { "Authorization": `Bearer ${token}` }
+            });
+            
+            if (!response.ok) throw new Error("Failed to fetch low stock alerts");
+            
+            const items = await response.json();
+            
+            // Update low stock count
+            const lowStockCount = document.getElementById("low-stock-count");
+            lowStockCount.textContent = items.length;
+            
+            // Render low stock items
+            renderLowStockAlerts(items);
+            
+            // Create notifications for critical items
+            const criticalItems = items.filter(item => item.status === 'critical');
+            if (criticalItems.length > 0) {
+                criticalItems.forEach(item => {
+                    addStockNotification(item);
+                });
+                updateNotifications();
+                saveNotificationsToStorage();
+            }
+            
+        } catch (error) {
+            console.error("Error fetching low stock alerts:", error);
+            displayMessage("Failed to load low stock alerts", "error");
+        }
+    }
+    
+    // Render low stock alerts
+    function renderLowStockAlerts(items) {
+        const alertsContainer = document.getElementById("low-stock-alerts");
+        alertsContainer.innerHTML = '';
+        
+        if (items.length === 0) {
+            alertsContainer.innerHTML = `
+                <div class="empty-alerts">
+                    <i class="fas fa-check-circle"></i>
+                    <p>No low stock items. Inventory levels are healthy!</p>
+                </div>
+            `;
+            return;
         }
         
-        setupRealtimeUpdates();
-    }, 500);
+        items.forEach(item => {
+            const alertItem = document.createElement('div');
+            alertItem.className = `alert-item ${item.status}`;
+            
+            // Calculate percentage of current stock compared to reorder level
+            const stockPercentage = Math.min(100, Math.round((item.currentStock / item.reorderLevel) * 100));
+            
+            alertItem.innerHTML = `
+                <div class="alert-item-title">
+                    ${item.name}
+                    <span class="status ${item.status}">${item.status}</span>
+                </div>
+                <div class="alert-item-details">
+                    <span>Stock: ${item.currentStock} / ${item.reorderLevel}</span>
+                    <span>${stockPercentage}%</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress ${item.status}" style="width: ${stockPercentage}%"></div>
+                </div>
+                <a href="../inventory/index.html" class="alert-item-action">Manage Stock</a>
+            `;
+            
+            alertsContainer.appendChild(alertItem);
+        });
+    }
+    
+    // Add a notification for critical stock
+    function addStockNotification(item) {
+        // Check if notification already exists
+        const existingNotification = notifications.find(
+            n => n.type === 'low-stock' && n.itemName === item.name
+        );
+        
+        if (existingNotification) return; // Skip if already notified
+        
+        notifications.push({
+            type: 'low-stock',
+            title: 'Critical Low Stock Alert',
+            message: `${item.name} is critically low with only ${item.currentStock} units left`,
+            timestamp: new Date(),
+            itemName: item.name,
+            read: false,
+            priority: 'high'
+        });
+    }
 });

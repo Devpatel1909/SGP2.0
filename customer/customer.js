@@ -433,8 +433,7 @@ async function fetchBillingData() {
                 <td data-label="Actions">
                     <div class="action-buttons">
                         <button class="action-btn view-btn" data-id="${customer.id}" title="View Details"><i class="fas fa-eye"></i></button>
-                        <button class="action-btn edit-btn" data-id="${customer.id}" title="Edit Customer"><i class="fas fa-edit"></i></button>
-                        <button class="action-btn delete-btn" data-id="${customer.id}" title="Delete Customer"><i class="fas fa-trash"></i></button>
+                       
                     </div>
                 </td>
             `;
